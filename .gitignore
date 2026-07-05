@@ -39,3 +39,4 @@ pnpm-debug.log*
 
 # Vite
 *.local
+resources/mpv/*.exe
