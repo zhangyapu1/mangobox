@@ -16,6 +16,9 @@ import {
   getSetting,
   setSetting
 } from './db/database'
+import { SourceManager } from './source/SourceManager'
+
+const sourceManager = new SourceManager()
 
 export function setupIPC(): void {
   // Favorites
@@ -80,5 +83,59 @@ export function setupIPC(): void {
 
   ipcMain.handle('set-setting', (_, key: string, value: string) => {
     setSetting(key, value)
+  })
+
+  // Source Manager
+  ipcMain.handle('load-source', async (_, url: string) => {
+    try {
+      const source = await sourceManager.loadSource(url)
+      return { success: true, source }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('get-source', () => {
+    return sourceManager.getSource()
+  })
+
+  ipcMain.handle('get-sites', () => {
+    return sourceManager.getSites()
+  })
+
+  ipcMain.handle('set-active-site', (_, siteKey: string) => {
+    sourceManager.setActiveSite(siteKey)
+  })
+
+  ipcMain.handle('get-active-site', () => {
+    return sourceManager.getActiveSite()
+  })
+
+  ipcMain.handle('get-home-content', async (_, siteKey?: string) => {
+    return await sourceManager.getHomeContent(siteKey)
+  })
+
+  ipcMain.handle('get-category-list', async (_, siteKey: string, categoryId: string, page: number) => {
+    return await sourceManager.getCategoryList(siteKey, categoryId, page)
+  })
+
+  ipcMain.handle('get-detail', async (_, siteKey: string, vodId: string) => {
+    return await sourceManager.getDetail(siteKey, vodId)
+  })
+
+  ipcMain.handle('search', async (_, siteKey: string, keyword: string, page: number) => {
+    return await sourceManager.search(siteKey, keyword, page)
+  })
+
+  ipcMain.handle('get-lives', () => {
+    return sourceManager.getLives()
+  })
+
+  ipcMain.handle('parse-live-channels', async (_, liveIndex: number) => {
+    const lives = sourceManager.getLives()
+    if (liveIndex >= 0 && liveIndex < lives.length) {
+      return await sourceManager.parseLiveChannels(lives[liveIndex])
+    }
+    return []
   })
 }

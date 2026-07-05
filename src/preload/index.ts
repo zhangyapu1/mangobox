@@ -38,5 +38,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Settings
   getSetting: (key: string) => ipcRenderer.invoke('get-setting', key),
   setSetting: (key: string, value: string) =>
-    ipcRenderer.invoke('set-setting', key, value)
+    ipcRenderer.invoke('set-setting', key, value),
+
+  // Source Manager
+  loadSource: (url: string) => ipcRenderer.invoke('load-source', url),
+  getSource: () => ipcRenderer.invoke('get-source'),
+  getSites: () => ipcRenderer.invoke('get-sites'),
+  setActiveSite: (siteKey: string) => ipcRenderer.invoke('set-active-site', siteKey),
+  getActiveSite: () => ipcRenderer.invoke('get-active-site'),
+  getHomeContent: (siteKey?: string) => ipcRenderer.invoke('get-home-content', siteKey),
+  getCategoryList: (siteKey: string, categoryId: string, page: number) =>
+    ipcRenderer.invoke('get-category-list', siteKey, categoryId, page),
+  getDetail: (siteKey: string, vodId: string) =>
+    ipcRenderer.invoke('get-detail', siteKey, vodId),
+  search: (siteKey: string, keyword: string, page: number) =>
+    ipcRenderer.invoke('search', siteKey, keyword, page),
+  getLives: () => ipcRenderer.invoke('get-lives'),
+  parseLiveChannels: (liveIndex: number) =>
+    ipcRenderer.invoke('parse-live-channels', liveIndex)
 })
