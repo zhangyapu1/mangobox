@@ -1,5 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
+import { initDatabase } from './db/database'
+import { setupIPC } from './ipc'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -26,7 +28,13 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // Initialize database
+  await initDatabase()
+
+  // Setup IPC handlers
+  setupIPC()
+
   createWindow()
 
   app.on('activate', () => {
