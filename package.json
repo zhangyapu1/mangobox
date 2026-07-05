@@ -40,6 +40,7 @@
     "vue-tsc": "^2.0.0"
   },
   "dependencies": {
+    "electron-fetch": "^1.9.1",
     "electron-updater": "^6.1.0",
     "naive-ui": "^2.38.0",
     "pinia": "^2.1.0",
