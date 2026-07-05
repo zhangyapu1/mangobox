@@ -26,14 +26,16 @@ function createWindow() {
   } else {
     mainWindow.loadFile(join(__dirname, '../dist/index.html'))
   }
+
+  // Setup IPC handlers with window reference
+  if (mainWindow) {
+    setupIPC(mainWindow)
+  }
 }
 
 app.whenReady().then(async () => {
   // Initialize database
   await initDatabase()
-
-  // Setup IPC handlers
-  setupIPC()
 
   createWindow()
 

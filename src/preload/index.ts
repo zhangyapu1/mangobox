@@ -55,5 +55,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('search', siteKey, keyword, page),
   getLives: () => ipcRenderer.invoke('get-lives'),
   parseLiveChannels: (liveIndex: number) =>
-    ipcRenderer.invoke('parse-live-channels', liveIndex)
+    ipcRenderer.invoke('parse-live-channels', liveIndex),
+
+  // Player
+  initPlayer: () => ipcRenderer.invoke('init-player'),
+  playVideo: (url: string) => ipcRenderer.invoke('play-video', url),
+  pauseVideo: () => ipcRenderer.invoke('pause-video'),
+  resumeVideo: () => ipcRenderer.invoke('resume-video'),
+  togglePause: () => ipcRenderer.invoke('toggle-pause'),
+  seekVideo: (seconds: number) => ipcRenderer.invoke('seek-video', seconds),
+  seekRelative: (seconds: number) => ipcRenderer.invoke('seek-relative', seconds),
+  setVolume: (volume: number) => ipcRenderer.invoke('set-volume', volume),
+  stopVideo: () => ipcRenderer.invoke('stop-video'),
+  toggleFullscreen: () => ipcRenderer.invoke('toggle-fullscreen'),
+  getPlayerState: () => ipcRenderer.invoke('get-player-state'),
+  getParses: () => ipcRenderer.invoke('get-parses')
 })

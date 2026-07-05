@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { ipcMain, BrowserWindow } from 'electron'
 import {
   addFavorite,
   removeFavorite,
@@ -17,10 +17,17 @@ import {
   setSetting
 } from './db/database'
 import { SourceManager } from './source/SourceManager'
+import { MpvController } from './player/MpvController'
+import { ParseManager } from './player/ParseManager'
 
-const sourceManager = new SourceManager()
+let sourceManager: SourceManager | null = null
+let mpvController: MpvController | null = null
+let parseManager: ParseManager | null = null
 
-export function setupIPC(): void {
+export function setupIPC(window: BrowserWindow): void {
+  sourceManager = new SourceManager()
+  parseManager = new ParseManager()
+
   // Favorites
   ipcMain.handle('add-favorite', (_, siteKey: string, vodId: string, vodName: string, vodPic?: string, vodRemarks?: string) => {
     addFavorite(siteKey, vodId, vodName, vodPic, vodRemarks)
@@ -88,7 +95,14 @@ export function setupIPC(): void {
   // Source Manager
   ipcMain.handle('load-source', async (_, url: string) => {
     try {
-      const source = await sourceManager.loadSource(url)
+      const source = await sourceManager!.loadSource(url)
+
+      // Update parse manager with new parses and flags
+      if (parseManager) {
+        parseManager.setParses(source.parses || [])
+        parseManager.setFlags(source.flags || [])
+      }
+
       return { success: true, source }
     } catch (error: any) {
       return { success: false, error: error.message }
@@ -96,46 +110,130 @@ export function setupIPC(): void {
   })
 
   ipcMain.handle('get-source', () => {
-    return sourceManager.getSource()
+    return sourceManager!.getSource()
   })
 
   ipcMain.handle('get-sites', () => {
-    return sourceManager.getSites()
+    return sourceManager!.getSites()
   })
 
   ipcMain.handle('set-active-site', (_, siteKey: string) => {
-    sourceManager.setActiveSite(siteKey)
+    sourceManager!.setActiveSite(siteKey)
   })
 
   ipcMain.handle('get-active-site', () => {
-    return sourceManager.getActiveSite()
+    return sourceManager!.getActiveSite()
   })
 
   ipcMain.handle('get-home-content', async (_, siteKey?: string) => {
-    return await sourceManager.getHomeContent(siteKey)
+    return await sourceManager!.getHomeContent(siteKey)
   })
 
   ipcMain.handle('get-category-list', async (_, siteKey: string, categoryId: string, page: number) => {
-    return await sourceManager.getCategoryList(siteKey, categoryId, page)
+    return await sourceManager!.getCategoryList(siteKey, categoryId, page)
   })
 
   ipcMain.handle('get-detail', async (_, siteKey: string, vodId: string) => {
-    return await sourceManager.getDetail(siteKey, vodId)
+    return await sourceManager!.getDetail(siteKey, vodId)
   })
 
   ipcMain.handle('search', async (_, siteKey: string, keyword: string, page: number) => {
-    return await sourceManager.search(siteKey, keyword, page)
+    return await sourceManager!.search(siteKey, keyword, page)
   })
 
   ipcMain.handle('get-lives', () => {
-    return sourceManager.getLives()
+    return sourceManager!.getLives()
   })
 
   ipcMain.handle('parse-live-channels', async (_, liveIndex: number) => {
-    const lives = sourceManager.getLives()
+    const lives = sourceManager!.getLives()
     if (liveIndex >= 0 && liveIndex < lives.length) {
-      return await sourceManager.parseLiveChannels(lives[liveIndex])
+      return await sourceManager!.parseLiveChannels(lives[liveIndex])
     }
     return []
+  })
+
+  // Player
+  ipcMain.handle('init-player', async () => {
+    try {
+      if (!mpvController) {
+        mpvController = new MpvController(window)
+        await mpvController.init()
+      }
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('play-video', async (_, url: string) => {
+    if (!mpvController) return { success: false, error: 'Player not initialized' }
+
+    try {
+      // Parse URL if needed
+      let finalUrl = url
+      if (parseManager && parseManager.needsParsing(url)) {
+        finalUrl = await parseManager.parseUrl(url)
+      }
+
+      await mpvController.play(finalUrl)
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('pause-video', async () => {
+    if (!mpvController) return
+    await mpvController.pause()
+  })
+
+  ipcMain.handle('resume-video', async () => {
+    if (!mpvController) return
+    await mpvController.resume()
+  })
+
+  ipcMain.handle('toggle-pause', async () => {
+    if (!mpvController) return
+    await mpvController.togglePause()
+  })
+
+  ipcMain.handle('seek-video', async (_, seconds: number) => {
+    if (!mpvController) return
+    await mpvController.seek(seconds)
+  })
+
+  ipcMain.handle('seek-relative', async (_, seconds: number) => {
+    if (!mpvController) return
+    await mpvController.seekRelative(seconds)
+  })
+
+  ipcMain.handle('set-volume', async (_, volume: number) => {
+    if (!mpvController) return
+    await mpvController.setVolume(volume)
+  })
+
+  ipcMain.handle('stop-video', async () => {
+    if (!mpvController) return
+    await mpvController.stop()
+  })
+
+  ipcMain.handle('toggle-fullscreen', async () => {
+    if (!mpvController) return
+    await mpvController.toggleFullscreen()
+  })
+
+  ipcMain.handle('get-player-state', () => {
+    if (!mpvController) return null
+    return {
+      isPlaying: mpvController.getIsPlaying(),
+      currentTime: mpvController.getCurrentTime(),
+      duration: mpvController.getDuration(),
+      volume: mpvController.getVolume()
+    }
+  })
+
+  ipcMain.handle('get-parses', () => {
+    return parseManager?.getParseNames() || []
   })
 }
