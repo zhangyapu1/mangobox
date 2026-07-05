@@ -1,0 +1,26 @@
+appId: com.mangobox.app
+productName: MangoBox
+directories:
+  release: release
+files:
+  - dist/**/*
+  - dist-electron/**/*
+asar: true
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: resources/icon.ico
+nsis:
+  artifactName: ${name}-${version}-setup.${ext}
+  shortcutName: MangoBox
+  uninstallDisplayName: MangoBox
+  createDesktopShortcut: always
+portable:
+  artifactName: ${name}-${version}-portable.${ext}
+extraResources:
+  - from: resources/mpv/
+    to: mpv/
+  - from: resources/python/
+    to: python/
