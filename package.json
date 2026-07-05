@@ -31,7 +31,7 @@
   "homepage": "https://github.com/zhangyapu1/mangobox#readme",
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
-    "electron": "^33.0.0",
+    "electron": "^33.4.11",
     "electron-builder": "^25.0.0",
     "typescript": "^5.3.0",
     "vite": "^5.0.0",
@@ -42,9 +42,9 @@
   "dependencies": {
     "electron-fetch": "^1.9.1",
     "electron-updater": "^6.1.0",
+    "lowdb": "^7.0.1",
     "naive-ui": "^2.38.0",
     "pinia": "^2.1.0",
-    "sql.js": "^1.10.0",
     "vue": "^3.4.0",
     "vue-router": "^4.2.0"
   }

@@ -29,12 +29,12 @@ export function setupIPC(window: BrowserWindow): void {
   parseManager = new ParseManager()
 
   // Favorites
-  ipcMain.handle('add-favorite', (_, siteKey: string, vodId: string, vodName: string, vodPic?: string, vodRemarks?: string) => {
-    addFavorite(siteKey, vodId, vodName, vodPic, vodRemarks)
+  ipcMain.handle('add-favorite', async (_, siteKey: string, vodId: string, vodName: string, vodPic?: string, vodRemarks?: string) => {
+    await addFavorite(siteKey, vodId, vodName, vodPic, vodRemarks)
   })
 
-  ipcMain.handle('remove-favorite', (_, siteKey: string, vodId: string) => {
-    removeFavorite(siteKey, vodId)
+  ipcMain.handle('remove-favorite', async (_, siteKey: string, vodId: string) => {
+    await removeFavorite(siteKey, vodId)
   })
 
   ipcMain.handle('get-favorites', () => {
@@ -46,16 +46,16 @@ export function setupIPC(window: BrowserWindow): void {
   })
 
   // History
-  ipcMain.handle('add-history', (_, siteKey: string, vodId: string, vodName: string, vodPic?: string, episodeName?: string, episodeUrl?: string) => {
-    addHistory(siteKey, vodId, vodName, vodPic, episodeName, episodeUrl)
+  ipcMain.handle('add-history', async (_, siteKey: string, vodId: string, vodName: string, vodPic?: string, episodeName?: string, episodeUrl?: string) => {
+    await addHistory(siteKey, vodId, vodName, vodPic, episodeName, episodeUrl)
   })
 
   ipcMain.handle('get-history', () => {
     return getHistory()
   })
 
-  ipcMain.handle('update-play-progress', (_, siteKey: string, vodId: string, position: number, duration: number) => {
-    updatePlayProgress(siteKey, vodId, position, duration)
+  ipcMain.handle('update-play-progress', async (_, siteKey: string, vodId: string, position: number, duration: number) => {
+    await updatePlayProgress(siteKey, vodId, position, duration)
   })
 
   ipcMain.handle('get-play-progress', (_, siteKey: string, vodId: string) => {
@@ -63,20 +63,20 @@ export function setupIPC(window: BrowserWindow): void {
   })
 
   // Sources
-  ipcMain.handle('add-source', (_, name: string, url: string) => {
-    addSource(name, url)
+  ipcMain.handle('add-source', async (_, name: string, url: string) => {
+    await addSource(name, url)
   })
 
-  ipcMain.handle('remove-source', (_, url: string) => {
-    removeSource(url)
+  ipcMain.handle('remove-source', async (_, url: string) => {
+    await removeSource(url)
   })
 
   ipcMain.handle('get-sources', () => {
     return getSources()
   })
 
-  ipcMain.handle('set-active-source', (_, url: string) => {
-    setActiveSource(url)
+  ipcMain.handle('set-active-source', async (_, url: string) => {
+    await setActiveSource(url)
   })
 
   ipcMain.handle('get-active-source', () => {
@@ -88,8 +88,8 @@ export function setupIPC(window: BrowserWindow): void {
     return getSetting(key)
   })
 
-  ipcMain.handle('set-setting', (_, key: string, value: string) => {
-    setSetting(key, value)
+  ipcMain.handle('set-setting', async (_, key: string, value: string) => {
+    await setSetting(key, value)
   })
 
   // Source Manager
