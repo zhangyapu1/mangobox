@@ -5,11 +5,10 @@ import { initDatabase } from './db/database'
 import { setupIPC } from './ipc'
 
 let mainWindow: BrowserWindow | null = null
+let ipcSetup = false
 
 function createWindow() {
   const preloadPath = join(__dirname, '../preload/index.js')
-  console.log('Preload path:', preloadPath)
-  console.log('Preload exists:', existsSync(preloadPath))
 
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -32,11 +31,17 @@ function createWindow() {
     mainWindow.loadFile(join(__dirname, '../dist/index.html'))
   }
 
-  // Setup IPC handlers with window reference
-  if (mainWindow) {
+  // Setup IPC handlers only once
+  if (!ipcSetup && mainWindow) {
     setupIPC(mainWindow)
+    ipcSetup = true
   }
 }
+
+// Single IPC handler for app version
+ipcMain.handle('get-app-version', () => {
+  return app.getVersion()
+})
 
 app.whenReady().then(async () => {
   // Initialize database
@@ -55,9 +60,4 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
-})
-
-// IPC handlers
-ipcMain.handle('get-app-version', () => {
-  return app.getVersion()
 })

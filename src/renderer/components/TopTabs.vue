@@ -25,15 +25,15 @@ const handleTabClick = (key: string) => {
 }
 
 const minimizeWindow = () => {
-  // TODO: Implement window minimize
+  window.electronAPI.minimizeWindow()
 }
 
 const maximizeWindow = () => {
-  // TODO: Implement window maximize
+  window.electronAPI.maximizeWindow()
 }
 
 const closeWindow = () => {
-  // TODO: Implement window close
+  window.electronAPI.closeWindow()
 }
 </script>
 

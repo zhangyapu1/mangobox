@@ -46,6 +46,23 @@ export function setupIPC(window: BrowserWindow): void {
   // Enable ad blocker
   adBlocker.applyRules()
 
+  // Window controls
+  ipcMain.handle('minimize-window', () => {
+    window.minimize()
+  })
+
+  ipcMain.handle('maximize-window', () => {
+    if (window.isMaximized()) {
+      window.unmaximize()
+    } else {
+      window.maximize()
+    }
+  })
+
+  ipcMain.handle('close-window', () => {
+    window.close()
+  })
+
   // Register keyboard shortcuts
   keyboardManager.registerShortcuts()
 

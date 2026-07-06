@@ -18,7 +18,9 @@ const handleSearch = async () => {
   error.value = ''
   try {
     const sites = await window.electronAPI.getSites()
-    const searchableSites = sites.filter((s: any) => s.searchable === 1)
+    const searchableSites = sites.filter((s: any) =>
+      s.searchable === 1 || (s.searchable === undefined && s.type === 3)
+    )
 
     // Search all sites in parallel
     const searchPromises = searchableSites.map(async (site: any) => {

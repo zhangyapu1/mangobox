@@ -3,6 +3,9 @@ import { contextBridge, ipcRenderer } from 'electron'
 contextBridge.exposeInMainWorld('electronAPI', {
   // App
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
+  minimizeWindow: () => ipcRenderer.invoke('minimize-window'),
+  maximizeWindow: () => ipcRenderer.invoke('maximize-window'),
+  closeWindow: () => ipcRenderer.invoke('close-window'),
   onWindowAction: (callback: (action: string) => void) => {
     const handler = (_: any, action: string) => callback(action)
     ipcRenderer.on('window-action', handler)

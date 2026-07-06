@@ -90,7 +90,14 @@ const playEpisode = async (sourceIndex: number, episodeIndex: number) => {
 
   // Get the site API URL for Referer
   const activeSite = await window.electronAPI.getActiveSite()
-  const referer = activeSite?.api ? new URL(activeSite.api).origin + '/' : ''
+  let referer = ''
+  try {
+    if (activeSite?.api) {
+      referer = new URL(activeSite.api).origin + '/'
+    }
+  } catch {
+    referer = ''
+  }
 
   // Use fullscreen player
   if (playVideo) {

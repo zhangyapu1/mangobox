@@ -70,8 +70,12 @@ export async function initDatabase(): Promise<void> {
     console.log('Database initialized successfully')
   } catch (error) {
     console.error('Failed to initialize database:', error)
-    // Create in-memory fallback
-    db = new Low<Schema>(null as any, {
+    // Create in-memory fallback with a no-op adapter
+    const memoryAdapter = {
+      read: async () => null,
+      write: async () => {}
+    }
+    db = new Low<Schema>(memoryAdapter as any, {
       favorites: [],
       history: [],
       sources: [],
@@ -88,6 +92,11 @@ function getDb(): Low<Schema> {
 }
 
 // Favorites
+let idCounter = 0
+function generateId(): number {
+  return Date.now() * 1000 + (++idCounter % 1000)
+}
+
 export async function addFavorite(siteKey: string, vodId: string, vodName: string, vodPic?: string, vodRemarks?: string): Promise<void> {
   const db = getDb()
   const existing = db.data.favorites.find(f => f.siteKey === siteKey && f.vodId === vodId)
@@ -98,7 +107,7 @@ export async function addFavorite(siteKey: string, vodId: string, vodName: strin
     existing.vodRemarks = vodRemarks
   } else {
     db.data.favorites.push({
-      id: Date.now(),
+      id: generateId(),
       siteKey,
       vodId,
       vodName,
@@ -140,7 +149,7 @@ export async function addHistory(siteKey: string, vodId: string, vodName: string
     existing.updatedAt = new Date().toISOString()
   } else {
     db.data.history.push({
-      id: Date.now(),
+      id: generateId(),
       siteKey,
       vodId,
       vodName,
@@ -193,7 +202,7 @@ export async function addSource(name: string, url: string): Promise<void> {
 
   if (!existing) {
     db.data.sources.push({
-      id: Date.now(),
+      id: generateId(),
       name,
       url,
       isActive: false,
@@ -230,7 +239,7 @@ export function getActiveSource(): Source | null {
 // Settings
 export function getSetting(key: string): string | null {
   const db = getDb()
-  return db.data.settings[key] || null
+  return db.data.settings[key] ?? null
 }
 
 export async function setSetting(key: string, value: string): Promise<void> {

@@ -9,6 +9,9 @@ declare module '*.vue' {
 interface ElectronAPI {
   // App
   getAppVersion: () => Promise<string>
+  minimizeWindow: () => Promise<void>
+  maximizeWindow: () => Promise<void>
+  closeWindow: () => Promise<void>
   onWindowAction: (callback: (action: string) => void) => () => void
 
   // Favorites
@@ -36,6 +39,7 @@ interface ElectronAPI {
 
   // Source Manager
   loadSource: (url: string) => Promise<{ success: boolean; source?: any; error?: string }>
+  loadBuiltinSource: () => Promise<{ success: boolean; source?: any; error?: string }>
   getSource: () => Promise<any | null>
   getSites: () => Promise<any[]>
   setActiveSite: (siteKey: string) => Promise<void>

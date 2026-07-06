@@ -25,9 +25,23 @@ export class DlnaManager extends EventEmitter {
   private devices: DlnaDevice[] = []
   private currentSession: CastSession | null = null
   private isScanning: boolean = false
+  private dlnacasts: any = null
 
   constructor() {
     super()
+  }
+
+  private getClient() {
+    if (!this.dlnacasts) {
+      try {
+        const dlnacasts = require('dlnacasts')
+        this.dlnacasts = dlnacasts()
+      } catch (error) {
+        console.error('Failed to initialize dlnacasts:', error)
+        return null
+      }
+    }
+    return this.dlnacasts
   }
 
   async startScan(): Promise<void> {
@@ -37,10 +51,13 @@ export class DlnaManager extends EventEmitter {
     this.devices = []
 
     try {
-      // Use SSDP to discover DLNA devices
-      const dlnacasts = require('dlnacasts')()
+      const client = this.getClient()
+      if (!client) {
+        this.isScanning = false
+        return
+      }
 
-      dlnacasts.on('device', (device: any) => {
+      client.on('device', (device: any) => {
         const dlnaDevice: DlnaDevice = {
           name: device.name || 'Unknown Device',
           host: device.host,
@@ -50,14 +67,12 @@ export class DlnaManager extends EventEmitter {
           modelName: device.modelName || ''
         }
 
-        // Avoid duplicates
         if (!this.devices.find(d => d.host === dlnaDevice.host)) {
           this.devices.push(dlnaDevice)
           this.emit('deviceFound', dlnaDevice)
         }
       })
 
-      // Scan for 5 seconds
       await new Promise(resolve => setTimeout(resolve, 5000))
 
       this.isScanning = false
@@ -79,20 +94,13 @@ export class DlnaManager extends EventEmitter {
 
   async cast(device: DlnaDevice, url: string, title: string): Promise<void> {
     try {
-      const dlnacasts = require('dlnacasts')()
+      const client = this.getClient()
+      if (!client) throw new Error('DLNA client not available')
 
-      // Find the device
-      const targetDevice = dlnacasts.devices.find((d: any) => d.host === device.host)
+      const targetDevice = client.devices.find((d: any) => d.host === device.host)
+      if (!targetDevice) throw new Error('Device not found')
 
-      if (!targetDevice) {
-        throw new Error('Device not found')
-      }
-
-      // Start casting
-      targetDevice.play(url, {
-        title: title,
-        type: 'video'
-      })
+      targetDevice.play(url, { title, type: 'video' })
 
       this.currentSession = {
         device,
@@ -105,7 +113,6 @@ export class DlnaManager extends EventEmitter {
 
       this.emit('castStarted', this.currentSession)
 
-      // Monitor playback
       targetDevice.on('status', (status: any) => {
         if (this.currentSession) {
           this.currentSession.position = status.position || 0
@@ -122,11 +129,9 @@ export class DlnaManager extends EventEmitter {
 
   async pause(): Promise<void> {
     if (!this.currentSession) return
-
     try {
-      const dlnacasts = require('dlnacasts')()
-      const device = dlnacasts.devices.find((d: any) => d.host === this.currentSession!.device.host)
-
+      const client = this.getClient()
+      const device = client?.devices.find((d: any) => d.host === this.currentSession!.device.host)
       if (device) {
         device.pause()
         this.currentSession.isPlaying = false
@@ -139,11 +144,9 @@ export class DlnaManager extends EventEmitter {
 
   async resume(): Promise<void> {
     if (!this.currentSession) return
-
     try {
-      const dlnacasts = require('dlnacasts')()
-      const device = dlnacasts.devices.find((d: any) => d.host === this.currentSession!.device.host)
-
+      const client = this.getClient()
+      const device = client?.devices.find((d: any) => d.host === this.currentSession!.device.host)
       if (device) {
         device.play()
         this.currentSession.isPlaying = true
@@ -156,11 +159,9 @@ export class DlnaManager extends EventEmitter {
 
   async stop(): Promise<void> {
     if (!this.currentSession) return
-
     try {
-      const dlnacasts = require('dlnacasts')()
-      const device = dlnacasts.devices.find((d: any) => d.host === this.currentSession!.device.host)
-
+      const client = this.getClient()
+      const device = client?.devices.find((d: any) => d.host === this.currentSession!.device.host)
       if (device) {
         device.stop()
         this.currentSession = null
@@ -168,39 +169,6 @@ export class DlnaManager extends EventEmitter {
       }
     } catch (error) {
       console.error('Stop failed:', error)
-    }
-  }
-
-  async seek(seconds: number): Promise<void> {
-    if (!this.currentSession) return
-
-    try {
-      const dlnacasts = require('dlnacasts')()
-      const device = dlnacasts.devices.find((d: any) => d.host === this.currentSession!.device.host)
-
-      if (device) {
-        device.seek(seconds)
-        this.currentSession.position = seconds
-        this.emit('seeked', seconds)
-      }
-    } catch (error) {
-      console.error('Seek failed:', error)
-    }
-  }
-
-  async setVolume(volume: number): Promise<void> {
-    if (!this.currentSession) return
-
-    try {
-      const dlnacasts = require('dlnacasts')()
-      const device = dlnacasts.devices.find((d: any) => d.host === this.currentSession!.device.host)
-
-      if (device) {
-        device.setVolume(volume / 100)
-        this.emit('volumeChanged', volume)
-      }
-    } catch (error) {
-      console.error('Set volume failed:', error)
     }
   }
 

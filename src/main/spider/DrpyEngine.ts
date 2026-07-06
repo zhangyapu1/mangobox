@@ -1,63 +1,43 @@
 import { runInNewContext } from 'vm'
+import { createHash, createCipheriv, createDecipheriv } from 'crypto'
 import fetch from 'electron-fetch'
 
 /**
  * DrpyEngine - Executes drpy2-style JavaScript spiders
- *
- * drpy2 is a framework for writing TVBox-compatible video scraping rules.
- * This engine provides the necessary runtime environment for drpy2 scripts.
  */
-
-interface DrpyContext {
-  fetch: typeof fetch
-  log: (...args: any[]) => void
-  pdfa: (html: string, selector: string) => string[]
-  pdfh: (html: string, selector: string) => string
-  pd: (html: string, selector: string, url: string) => string
-  base64Encode: (str: string) => string
-  base64Decode: (str: string) => string
-  urlEncode: (str: string) => string
-  urlDecode: (str: string) => string
-  md5: (str: string) => string
-  aesEncrypt: (data: string, key: string, iv?: string) => string
-  aesDecrypt: (data: string, key: string, iv?: string) => string
-  [key: string]: any
-}
-
 export class DrpyEngine {
   private scripts: Map<string, any> = new Map()
   private scriptCache: Map<string, string> = new Map()
-  private readonly CALL_TIMEOUT = 30000 // 30 seconds
+  private readonly CALL_TIMEOUT = 30000
 
   async loadScript(key: string, jsUrl: string): Promise<boolean> {
     try {
       let code: string
 
-      // Check cache first
       if (this.scriptCache.has(jsUrl)) {
         code = this.scriptCache.get(jsUrl)!
       } else {
         if (jsUrl.startsWith('http')) {
-          const response = await fetch(jsUrl)
+          const response = await fetch(jsUrl, {
+            timeout: 15000,
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+          })
           code = await response.text()
         } else {
           console.warn('Local JS files not supported:', jsUrl)
           return false
         }
-        // Cache the script
         this.scriptCache.set(jsUrl, code)
       }
 
-      // Check if script uses ES module syntax
-      if (code.includes('import ') && code.includes(' from ')) {
+      // Check for ES module syntax
+      if (/^\s*import\s/m.test(code) && /\sfrom\s/m.test(code)) {
         console.warn(`Drpy spider ${key} uses ES modules (not supported), skipping`)
         return false
       }
 
-      // Create drpy2 runtime context
       const context = this.createContext()
 
-      // Wrap the script code to extract the spider object
       const wrappedCode = `
         (function() {
           var spider = {};
@@ -66,7 +46,6 @@ export class DrpyEngine {
         })()
       `
 
-      // Execute in sandbox
       const spider = runInNewContext(wrappedCode, context, {
         timeout: 10000,
         displayErrors: true
@@ -85,37 +64,50 @@ export class DrpyEngine {
     }
   }
 
-  private createContext(): DrpyContext {
+  private createContext() {
     return {
       fetch: fetch as any,
       log: console.log,
 
-      // HTML parsing helpers (simplified - in production, use cheerio or similar)
+      // HTML parsing helpers using regex (basic implementation)
       pdfa: (html: string, selector: string) => {
-        // Simple regex-based extraction (placeholder)
-        const regex = new RegExp(selector, 'g')
-        const matches = html.match(regex) || []
-        return matches
+        try {
+          // Convert simple CSS selectors to regex patterns
+          const pattern = this.cssSelectorToRegex(selector)
+          const regex = new RegExp(pattern, 'g')
+          const matches = html.match(regex) || []
+          return matches
+        } catch {
+          return []
+        }
       },
 
       pdfh: (html: string, selector: string) => {
-        // Simple regex-based extraction (placeholder)
-        const match = html.match(new RegExp(selector))
-        return match ? match[1] || match[0] : ''
+        try {
+          const pattern = this.cssSelectorToRegex(selector)
+          const match = html.match(new RegExp(pattern))
+          return match ? match[1] || match[0] : ''
+        } catch {
+          return ''
+        }
       },
 
       pd: (html: string, selector: string, url: string) => {
-        // Extract and resolve URL
-        const match = html.match(new RegExp(selector))
-        if (!match) return ''
-        const href = match[1] || match[0]
-        if (href.startsWith('http')) return href
-        if (href.startsWith('//')) return 'https:' + href
-        if (href.startsWith('/')) {
-          const urlObj = new URL(url)
-          return urlObj.origin + href
+        try {
+          const pattern = this.cssSelectorToRegex(selector)
+          const match = html.match(new RegExp(pattern))
+          if (!match) return ''
+          const href = match[1] || match[0]
+          if (href.startsWith('http')) return href
+          if (href.startsWith('//')) return 'https:' + href
+          if (href.startsWith('/')) {
+            const urlObj = new URL(url)
+            return urlObj.origin + href
+          }
+          return url + '/' + href
+        } catch {
+          return ''
         }
-        return url + '/' + href
       },
 
       // Encoding helpers
@@ -124,22 +116,64 @@ export class DrpyEngine {
       urlEncode: (str: string) => encodeURIComponent(str),
       urlDecode: (str: string) => decodeURIComponent(str),
 
-      // Crypto helpers (simplified)
+      // Crypto helpers - fully implemented
       md5: (str: string) => {
-        // In production, use crypto module
-        return str // Placeholder
+        return createHash('md5').update(str).digest('hex')
       },
 
       aesEncrypt: (data: string, key: string, iv?: string) => {
-        // In production, use crypto module
-        return data // Placeholder
+        try {
+          const keyBuffer = Buffer.from(key, 'utf-8').slice(0, 16)
+          const ivBuffer = iv ? Buffer.from(iv, 'utf-8').slice(0, 16) : Buffer.alloc(16)
+          const cipher = createCipheriv('aes-128-cbc', keyBuffer, ivBuffer)
+          let encrypted = cipher.update(data, 'utf-8', 'base64')
+          encrypted += cipher.final('base64')
+          return encrypted
+        } catch (e) {
+          console.error('aesEncrypt failed:', e)
+          return data
+        }
       },
 
       aesDecrypt: (data: string, key: string, iv?: string) => {
-        // In production, use crypto module
-        return data // Placeholder
+        try {
+          const keyBuffer = Buffer.from(key, 'utf-8').slice(0, 16)
+          const ivBuffer = iv ? Buffer.from(iv, 'utf-8').slice(0, 16) : Buffer.alloc(16)
+          const decipher = createDecipheriv('aes-128-cbc', keyBuffer, ivBuffer)
+          let decrypted = decipher.update(data, 'base64', 'utf-8')
+          decrypted += decipher.final('utf-8')
+          return decrypted
+        } catch (e) {
+          console.error('aesDecrypt failed:', e)
+          return data
+        }
       }
     }
+  }
+
+  private cssSelectorToRegex(selector: string): string {
+    // Basic CSS selector to regex conversion
+    // Handles common patterns used in drpy2 scripts
+    let pattern = selector
+      .replace(/\./g, '\\.')  // Escape dots
+      .replace(/#/g, '\\#')   // Escape hashes
+      .replace(/\s+/g, '\\s+') // Convert spaces to whitespace patterns
+      .replace(/"/g, '["\']')  // Handle quotes
+      .replace(/'/g, '["\']')
+
+    // If it looks like an attribute selector, extract the value
+    if (selector.includes('[') && selector.includes(']')) {
+      pattern = selector.replace(/\[([^\]]+)\]/g, (match, attr) => {
+        // Convert [attr="value"] to capture group
+        if (attr.includes('=')) {
+          const [name, value] = attr.split('=').map((s: string) => s.trim().replace(/"/g, ''))
+          return `\\[${name}\\s*=\\s*["']${value}["']\\]`
+        }
+        return `\\[${attr}\\]`
+      })
+    }
+
+    return pattern
   }
 
   async call(key: string, method: string, params: any = {}): Promise<any> {
@@ -153,7 +187,6 @@ export class DrpyEngine {
       throw new Error(`Method ${method} not found in script ${key}`)
     }
 
-    // Add timeout protection for remote code execution
     return Promise.race([
       func(params),
       new Promise((_, reject) =>
@@ -164,10 +197,6 @@ export class DrpyEngine {
 
   async homeContent(key: string, filter: boolean = true): Promise<any> {
     return await this.call(key, 'homeContent', { filter })
-  }
-
-  async homeVideoContent(key: string): Promise<any> {
-    return await this.call(key, 'homeVideoContent')
   }
 
   async categoryContent(key: string, tid: string, pg: number, filter: boolean = true, extend: any = {}): Promise<any> {

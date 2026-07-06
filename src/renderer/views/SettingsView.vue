@@ -167,24 +167,24 @@ const toggleKeyboard = async () => {
         <div v-else-if="sources.length > 0">
           <div
             v-for="source in sources"
-            :key="source[1]"
+            :key="source.url"
             class="source-item"
-            :class="{ active: source[2] === 1 }"
+            :class="{ active: source.isActive }"
           >
             <div class="source-info">
-              <div class="source-name">{{ source[0] }}</div>
-              <div class="source-url">{{ source[1] }}</div>
+              <div class="source-name">{{ source.name }}</div>
+              <div class="source-url">{{ source.url }}</div>
             </div>
             <div class="source-actions">
               <button
-                v-if="source[2] !== 1"
+                v-if="!source.isActive"
                 class="activate-btn"
-                @click="setActiveSource(source[1])"
+                @click="setActiveSource(source.url)"
               >
                 激活
               </button>
               <span v-else class="active-badge">当前活动</span>
-              <button class="remove-btn" @click="removeSource(source[1])">删除</button>
+              <button class="remove-btn" @click="removeSource(source.url)">删除</button>
             </div>
           </div>
         </div>

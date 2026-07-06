@@ -22,7 +22,10 @@ export class CmsClient {
   async getCategories(): Promise<any[]> {
     try {
       const url = `${this.baseUrl}?ac=list`
-      const response = await fetch(url)
+      const response = await fetch(url, {
+        timeout: 10000,
+        headers: this.site.header || {}
+      })
       const data = await response.json() as CmsListResponse
       return data.class || []
     } catch (error) {
@@ -35,7 +38,10 @@ export class CmsClient {
     try {
       // Use ac=detail to get images in list response
       const url = `${this.baseUrl}?ac=detail&t=${categoryId}&pg=${page}`
-      const response = await fetch(url)
+      const response = await fetch(url, {
+        timeout: 10000,
+        headers: this.site.header || {}
+      })
       const data = await response.json() as CmsListResponse
       return {
         list: data.list || [],
@@ -51,9 +57,10 @@ export class CmsClient {
   async getHomeContent(): Promise<{ categories: any[]; list: VodItem[] }> {
     try {
       // Make two calls: ac=list for categories, ac=detail for videos with images
+      const headers = this.site.header || {}
       const [listResponse, detailResponse] = await Promise.all([
-        fetch(`${this.baseUrl}?ac=list`),
-        fetch(`${this.baseUrl}?ac=detail`)
+        fetch(`${this.baseUrl}?ac=list`, { timeout: 10000, headers }),
+        fetch(`${this.baseUrl}?ac=detail`, { timeout: 10000, headers })
       ])
 
       const listData = await listResponse.json() as CmsListResponse
@@ -72,7 +79,10 @@ export class CmsClient {
   async getDetail(vodId: string): Promise<VideoInfo | null> {
     try {
       const url = `${this.baseUrl}?ac=detail&ids=${vodId}`
-      const response = await fetch(url)
+      const response = await fetch(url, {
+        timeout: 10000,
+        headers: this.site.header || {}
+      })
       const data = await response.json() as CmsDetailResponse
 
       if (!data.list || data.list.length === 0) {
@@ -91,7 +101,18 @@ export class CmsClient {
     try {
       // Use ac=detail to get images in search results
       const url = `${this.baseUrl}?ac=detail&wd=${encodeURIComponent(keyword)}&pg=${page}`
-      const response = await fetch(url)
+      const response = await fetch(url, {
+        timeout: 10000,
+        headers: this.site.header || {}
+      })
+
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type') || ''
+      if (!contentType.includes('json')) {
+        console.warn('Non-JSON response from search:', this.site.name)
+        return { list: [], page: 1, pageCount: 1 }
+      }
+
       const data = await response.json() as CmsListResponse
       return {
         list: data.list || [],
