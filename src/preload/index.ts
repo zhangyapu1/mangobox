@@ -44,6 +44,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Source Manager
   loadSource: (url: string) => ipcRenderer.invoke('load-source', url),
+  loadBuiltinSource: () => ipcRenderer.invoke('load-builtin-source'),
   getSource: () => ipcRenderer.invoke('get-source'),
   getSites: () => ipcRenderer.invoke('get-sites'),
   setActiveSite: (siteKey: string) => ipcRenderer.invoke('set-active-site', siteKey),

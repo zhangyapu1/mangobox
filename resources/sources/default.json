@@ -1,0 +1,835 @@
+{
+  "spider": "",
+  "sites": [
+    {
+      "key": "bfzy",
+      "name": "暴风资源",
+      "type": 1,
+      "api": "https://bfzyapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "liangzi",
+      "name": "量子资源",
+      "type": 1,
+      "api": "https://cj.lziapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "ffzy",
+      "name": "非凡资源",
+      "type": 1,
+      "api": "https://cj.ffzyapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "hongniu",
+      "name": "红牛资源",
+      "type": 1,
+      "api": "https://www.hongniuzy2.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "ikun",
+      "name": "ikun资源",
+      "type": 1,
+      "api": "https://ikunzyapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "uku",
+      "name": "尤酷资源",
+      "type": 1,
+      "api": "https://api.ukuapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "baidu",
+      "name": "百度资源",
+      "type": 1,
+      "api": "https://api.apibdzy.com/api.php/provide/vod",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "dytt",
+      "name": "电影天堂",
+      "type": 1,
+      "api": "http://caiji.dyttzyapi.com/api.php/provide/vod",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "huohu",
+      "name": "火狐资源",
+      "type": 1,
+      "api": "https://hhzyapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "ruyi",
+      "name": "如意资源",
+      "type": 1,
+      "api": "https://cj.rycjapi.com/api.php/provide/vod",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "tiantian",
+      "name": "天天资源",
+      "type": 1,
+      "api": "https://api.1080zyku.com/inc/apijson.php",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "s360",
+      "name": "360资源",
+      "type": 1,
+      "api": "https://360zy.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "tiankong",
+      "name": "天空资源",
+      "type": 1,
+      "api": "https://api.tiankongapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "dyttzy",
+      "name": "电影天堂资源",
+      "type": 1,
+      "api": "http://caiji.dyttzyapi.com/api.php/provide/vod",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "tianya",
+      "name": "天涯资源",
+      "type": 1,
+      "api": "http://tyyszy.com/api.php/provide/vod",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "wolong",
+      "name": "卧龙资源",
+      "type": 1,
+      "api": "https://wolongzyw.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "jisu",
+      "name": "极速资源",
+      "type": 1,
+      "api": "https://jszyapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "jinchan",
+      "name": "金蝉资源",
+      "type": 1,
+      "api": "https://zy.jinchancaiji.com/api.php/provide/vod",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "shuailv",
+      "name": "率率资源",
+      "type": 1,
+      "api": "https://suoniapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "aiyun",
+      "name": "爱云资源",
+      "type": 1,
+      "api": "https://cj.lziapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "shandian",
+      "name": "闪电影视",
+      "type": 1,
+      "api": "http://sdzyapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "lovedan",
+      "name": "艾旦影视",
+      "type": 1,
+      "api": "https://lovedan.net/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "jianan",
+      "name": "建安资源",
+      "type": 1,
+      "api": "http://154.219.117.232:9981/jacloudapi.php/provide/vod",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 0
+    },
+    {
+      "key": "freeok",
+      "name": "FreeOK影视",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/freeok.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "bilibili",
+      "name": "哔哩哔哩",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/bilibili.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "ikanbot",
+      "name": "ikanbot",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/ikanbot.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "nivod",
+      "name": "泥视频",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/nivod.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "wogg",
+      "name": "Wogg网盘",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/wogg.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "yiqikan",
+      "name": "一起看",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/yiqikan.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "mxanime",
+      "name": "MX动漫",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/mxanime.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "xgcartoon",
+      "name": "西瓜动漫",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/xgcartoon.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "cntv",
+      "name": "央视",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/cntv.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "audiomack",
+      "name": "Audiomack",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/audiomack.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "copymanga",
+      "name": "拷贝漫画",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/copymanga.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "huya",
+      "name": "虎牙直播",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/huya.js",
+      "searchable": 0,
+      "quickSearch": 0,
+      "filterable": 0
+    },
+    {
+      "key": "douban",
+      "name": "豆瓣",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/douban.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "jiafeimao",
+      "name": "加菲猫",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/jiafeimao.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "ttkan",
+      "name": "天天看",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/ttkan.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "aiyingshi",
+      "name": "爱影视",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/aiyingshi.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "sp360",
+      "name": "360影视",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/sp360.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "haoxi",
+      "name": "好戏",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/haoxi.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "newvision",
+      "name": "新视觉",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/newvision.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "pipixia",
+      "name": "皮皮虾",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/pipixia.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "doll",
+      "name": "玩偶哥哥",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/doll.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "hanxiucao",
+      "name": "含羞草",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/hanxiucao.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "nnyy",
+      "name": "努努影院",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/FGBLH/GHK/main/py/%E5%8A%AA%E5%8A%AA%E5%BD%B1%E9%99%A2.py",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "qiletv",
+      "name": "奇乐影视",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/jianpian.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "jiujiuliu",
+      "name": "996影视",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/jiujiuliu.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "kuaikan",
+      "name": "快看影视",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/kuaikan.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "ciliduo",
+      "name": "磁力多",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/ciliduo.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "dygangs",
+      "name": "电影港",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/dygangs.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "xb6v",
+      "name": "6V电影",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/xb6v.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "gitcafe",
+      "name": "GitCafe",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/gitcafe.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "mhdq",
+      "name": "萌虎动漫",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/mhdq.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "weixine",
+      "name": "微新e",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/weixine.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "star",
+      "name": "Star影视",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/star.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "mp4movie",
+      "name": "MP4电影",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/mp4movie.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "kankan70",
+      "name": "看看70",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/kankan70.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "haiwaikan",
+      "name": "海外看",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/haiwaikan.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "liujiushu",
+      "name": "九九书",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/liujiushu.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "bookan",
+      "name": "博看小说",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/bookan.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "bqg_open",
+      "name": "笔趣阁",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/bqg_open.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "dubo",
+      "name": "独播影视",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/dubo.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "hscangku",
+      "name": "HS仓库",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/hscangku.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0
+    },
+    {
+      "key": "asianx",
+      "name": "AsianX",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/asianx.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "jable",
+      "name": "Jable",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/jable.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "sehuatang",
+      "name": "色花堂",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/sehuatang.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "lovemovie18",
+      "name": "LoveMovie",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/lovemovie18.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "nivod_18",
+      "name": "泥视频Plus",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/nivod_18.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "feifan18",
+      "name": "非凡Plus",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/feifan18.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "liangzi18",
+      "name": "量子Plus",
+      "type": 3,
+      "api": "https://ghfast.top/https://raw.githubusercontent.com/jadehh/TVSpider/js/js/liangzi18.js",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "wujin",
+      "name": "无尽资源",
+      "type": 1,
+      "api": "https://api.wujinapi.net/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "yutu",
+      "name": "玉兔资源",
+      "type": 1,
+      "api": "https://apiyutu.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "jingpin",
+      "name": "精品资源",
+      "type": 1,
+      "api": "https://www.jingpinx.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "shayu",
+      "name": "鲨鱼资源",
+      "type": 1,
+      "api": "https://shayuapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "api155",
+      "name": "155资源",
+      "type": 1,
+      "api": "https://155api.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "ddapi",
+      "name": "滴滴资源",
+      "type": 1,
+      "api": "https://api.ddapi.cc/api.php/provide/vod/at/json",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "ckzy",
+      "name": "CK资源",
+      "type": 1,
+      "api": "https://ckzy.me/api.php/provide/vod",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "t8day",
+      "name": "七天资源",
+      "type": 1,
+      "api": "https://8day.icu/api.php/provide/vod/at/json",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "bwzy",
+      "name": "百万资源",
+      "type": 1,
+      "api": "https://api.bwzyz.com/api.php/provide/vod/at/json",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "thzy",
+      "name": "桃花资源",
+      "type": 1,
+      "api": "https://thzy1.me/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "lbzy",
+      "name": "乐播资源",
+      "type": 1,
+      "api": "https://lbapi9.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "lsbzy",
+      "name": "LSB资源",
+      "type": 1,
+      "api": "https://apilsbzy1.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "naixx",
+      "name": "奶香香",
+      "type": 1,
+      "api": "https://naixxzy.com/api.php/provide/vod",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "apidanai",
+      "name": "红桃视频",
+      "type": 1,
+      "api": "https://apidanaizi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "jkun",
+      "name": "鸡坤资源",
+      "type": 1,
+      "api": "https://jkunzyapi.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "vnzy",
+      "name": "越南资源",
+      "type": 1,
+      "api": "https://www.vnzyz.com/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    },
+    {
+      "key": "hsck",
+      "name": "黄色仓库",
+      "type": 1,
+      "api": "https://hsckzy.vip/api.php/provide/vod/",
+      "searchable": 1,
+      "quickSearch": 1,
+      "filterable": 0,
+      "group": "study"
+    }
+  ],
+  "lives": [
+    {
+      "name": "直播",
+      "url": "https://gh.zrfme.com/https://raw.githubusercontent.com/yoursmile66/TVBox/main/live.txt"
+    }
+  ],
+  "parses": [
+    {"name": "Json并发", "type": 2, "url": "Parallel"},
+    {"name": "聚合解析", "type": 3, "url": "https://jx.777jiexi.com/player/?url="}
+  ],
+  "flags": ["youku", "qq", "iqiyi", "qiyi", "letv", "sohu", "tudou", "pptv", "mgtv", "wasu", "bilibili", "renrenmi"],
+  "password": "328253"
+}

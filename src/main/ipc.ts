@@ -1,4 +1,7 @@
 import { ipcMain, BrowserWindow } from 'electron'
+import { join } from 'path'
+import { readFileSync, existsSync } from 'fs'
+import { app } from 'electron'
 import {
   addFavorite,
   removeFavorite,
@@ -122,6 +125,42 @@ export function setupIPC(window: BrowserWindow): void {
       }
 
       // Update ad blocker with source ads
+      if (adBlocker && source.ads) {
+        adBlocker.setBlockedDomains(source.ads)
+      }
+
+      // Update DNS settings
+      if (dnsOverHttps && source.doh && source.doh.length > 0) {
+        dnsOverHttps.setServer(source.doh[0].name)
+      }
+
+      return { success: true, source }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  // Load built-in source
+  ipcMain.handle('load-builtin-source', async () => {
+    try {
+      const sourcePath = join(app.getAppPath(), 'resources', 'sources', 'default.json')
+      if (!existsSync(sourcePath)) {
+        return { success: false, error: 'Built-in source not found' }
+      }
+
+      const content = readFileSync(sourcePath, 'utf-8')
+      const sourceData = JSON.parse(content)
+
+      // Load the source data directly
+      const source = await sourceManager!.loadSourceData(sourceData)
+
+      // Update parse manager
+      if (parseManager) {
+        parseManager.setParses(source.parses || [])
+        parseManager.setFlags(source.flags || [])
+      }
+
+      // Update ad blocker
       if (adBlocker && source.ads) {
         adBlocker.setBlockedDomains(source.ads)
       }

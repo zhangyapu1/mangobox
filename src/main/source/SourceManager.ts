@@ -55,6 +55,35 @@ export class SourceManager {
     }
   }
 
+  async loadSourceData(data: TvBoxSource): Promise<TvBoxSource> {
+    try {
+      // Validate source structure
+      if (!data.sites || !Array.isArray(data.sites)) {
+        throw new Error('Invalid source: missing sites array')
+      }
+
+      this.currentSource = data
+
+      // Initialize CMS clients for Type 0/1 sites
+      this.cmsClients.clear()
+      data.sites.forEach(site => {
+        if (site.type === 0 || site.type === 1) {
+          this.cmsClients.set(site.key, new CmsClient(site))
+        }
+      })
+
+      // Set first site as active if none selected
+      if (!this.activeSite && data.sites.length > 0) {
+        this.activeSite = data.sites[0]
+      }
+
+      return data
+    } catch (error) {
+      console.error('Failed to load source data:', error)
+      throw error
+    }
+  }
+
   getSource(): TvBoxSource | null {
     return this.currentSource
   }

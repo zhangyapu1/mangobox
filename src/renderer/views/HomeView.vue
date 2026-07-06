@@ -19,8 +19,12 @@ const loadHomeContent = async () => {
     // Check if source is loaded
     const source = await window.electronAPI.getSource()
     if (!source) {
-      // Load default source
-      await window.electronAPI.loadSource('https://raw.githubusercontent.com/FGBLH/GHK/main/海豚py.json')
+      // Try to load built-in source first
+      const builtinResult = await window.electronAPI.loadBuiltinSource()
+      if (!builtinResult.success) {
+        // Fallback to remote source
+        await window.electronAPI.loadSource('https://raw.githubusercontent.com/FGBLH/GHK/main/海豚py.json')
+      }
     }
 
     // Get home content
