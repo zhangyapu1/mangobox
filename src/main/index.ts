@@ -1,11 +1,16 @@
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
+import { existsSync } from 'fs'
 import { initDatabase } from './db/database'
 import { setupIPC } from './ipc'
 
 let mainWindow: BrowserWindow | null = null
 
 function createWindow() {
+  const preloadPath = join(__dirname, '../preload/index.js')
+  console.log('Preload path:', preloadPath)
+  console.log('Preload exists:', existsSync(preloadPath))
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -14,7 +19,7 @@ function createWindow() {
     title: 'MangoBox',
     show: true,
     webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
+      preload: preloadPath,
       nodeIntegration: false,
       contextIsolation: true
     },
