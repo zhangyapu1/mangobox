@@ -92,10 +92,17 @@ const playEpisode = async (sourceIndex: number, episodeIndex: number) => {
   const activeSite = await window.electronAPI.getActiveSite()
   const referer = activeSite?.api ? new URL(activeSite.api).origin + '/' : ''
 
-  // Use embedded player
+  // Use fullscreen player
   if (playVideo) {
     const episodes = source.episodes.map((ep: any) => ({ name: ep.name, url: ep.url }))
-    playVideo(episode.url, `${videoInfo.value.name} - ${episode.name}`, episodes, episodeIndex, referer)
+    playVideo(
+      episode.url,
+      videoInfo.value.name,
+      episodes,
+      episodeIndex,
+      referer,
+      videoInfo.value  // Pass full detail for overlay
+    )
   }
 }
 
