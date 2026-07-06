@@ -36,6 +36,18 @@ const formatDate = (dateStr: string) => {
     minute: '2-digit'
   })
 }
+
+const formatTime = (seconds: number): string => {
+  if (!seconds || isNaN(seconds)) return '0:00'
+  const m = Math.floor(seconds / 60)
+  const s = Math.floor(seconds % 60).toString().padStart(2, '0')
+  return `${m}:${s}`
+}
+
+const getProgress = (position: number, duration: number): number => {
+  if (!duration || duration === 0) return 0
+  return (position / duration) * 100
+}
 </script>
 
 <template>
@@ -47,23 +59,23 @@ const formatDate = (dateStr: string) => {
     <div v-else-if="history.length > 0" class="history-list">
       <div
         v-for="item in history"
-        :key="`${item[0]}-${item[1]}`"
+        :key="`${item.siteKey}-${item.vodId}`"
         class="history-item"
-        @click="goDetail(item[0], item[1])"
+        @click="goDetail(item.siteKey, item.vodId)"
       >
         <div class="item-cover">
-          <img :src="item[3]" :alt="item[2]" />
+          <img :src="item.vodPic" :alt="item.vodName" />
         </div>
         <div class="item-info">
-          <h3 class="item-title">{{ item[2] }}</h3>
-          <div v-if="item[4]" class="item-episode">看到: {{ item[4] }}</div>
-          <div class="item-time">{{ formatDate(item[7]) }}</div>
+          <h3 class="item-title">{{ item.vodName }}</h3>
+          <div v-if="item.episodeName" class="item-episode">看到: {{ item.episodeName }}</div>
+          <div class="item-time">{{ formatDate(item.updatedAt) }}</div>
         </div>
-        <div v-if="item[5] && item[6]" class="item-progress">
+        <div v-if="item.playPosition && item.playDuration" class="item-progress">
           <div class="progress-bar">
-            <div class="progress" :style="{ width: (item[5] / item[6] * 100) + '%' }"></div>
+            <div class="progress" :style="{ width: getProgress(item.playPosition, item.playDuration) + '%' }"></div>
           </div>
-          <div class="progress-text">{{ Math.floor(item[5] / 60) }}:{{ Math.floor(item[5] % 60).toString().padStart(2, '0') }}</div>
+          <div class="progress-text">{{ formatTime(item.playPosition) }}</div>
         </div>
       </div>
     </div>

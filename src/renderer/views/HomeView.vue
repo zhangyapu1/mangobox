@@ -37,8 +37,8 @@ const loadHomeContent = async () => {
   }
 }
 
-const goDetail = (vodId: string) => {
-  const activeSite = window.electronAPI.getActiveSite()
+const goDetail = async (vodId: string) => {
+  const activeSite = await window.electronAPI.getActiveSite()
   if (activeSite) {
     router.push(`/detail/${activeSite.key}/${vodId}`)
   }

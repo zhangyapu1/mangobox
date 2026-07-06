@@ -7,24 +7,41 @@ const duration = ref(0)
 const volume = ref(80)
 const isFullscreen = ref(false)
 
+const formatTime = (seconds: number): string => {
+  if (!seconds || isNaN(seconds)) return '0:00'
+  const m = Math.floor(seconds / 60)
+  const s = Math.floor(seconds % 60).toString().padStart(2, '0')
+  return `${m}:${s}`
+}
+
+const progressPercent = (): number => {
+  if (!duration.value || duration.value === 0) return 0
+  return (currentTime.value / duration.value) * 100
+}
+
 const togglePlay = () => {
   isPlaying.value = !isPlaying.value
-  // TODO: Send IPC to main process
+  window.electronAPI.togglePause()
 }
 
 const seek = (time: number) => {
   currentTime.value = time
-  // TODO: Send IPC to main process
+  window.electronAPI.seekVideo(time)
 }
 
 const setVolume = (vol: number) => {
   volume.value = vol
-  // TODO: Send IPC to main process
+  window.electronAPI.setVolume(vol)
 }
 
 const toggleFullscreen = () => {
   isFullscreen.value = !isFullscreen.value
-  // TODO: Send IPC to main process
+  window.electronAPI.toggleFullscreen()
+}
+
+const handleVolumeInput = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  setVolume(Number(target.value))
 }
 </script>
 
@@ -43,12 +60,12 @@ const toggleFullscreen = () => {
         {{ isPlaying ? '⏸' : '▶' }}
       </button>
       <div class="progress-bar">
-        <div class="progress" :style="{ width: (currentTime / duration * 100) + '%' }"></div>
+        <div class="progress" :style="{ width: progressPercent() + '%' }"></div>
       </div>
       <span class="time">{{ formatTime(currentTime) }} / {{ formatTime(duration) }}</span>
       <div class="volume-control">
         <span>🔊</span>
-        <input type="range" min="0" max="100" :value="volume" @input="setVolume(Number($event.target.value))">
+        <input type="range" min="0" max="100" :value="volume" @input="handleVolumeInput">
       </div>
       <button class="control-btn" @click="toggleFullscreen">
         {{ isFullscreen ? '⊡' : '⊞' }}

@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
 const loading = ref(true)
+const error = ref('')
 const videoInfo = ref<any>(null)
 const selectedSource = ref(0)
 const selectedEpisode = ref(0)
@@ -14,10 +15,23 @@ onMounted(async () => {
   await loadDetail()
 })
 
+// Watch for route param changes (same component, different id)
+watch(() => route.params.id, async () => {
+  if (route.params.id) {
+    await loadDetail()
+  }
+})
+
 const loadDetail = async () => {
   loading.value = true
+  error.value = ''
   try {
     const { siteKey, id } = route.params
+    if (!siteKey || !id) {
+      error.value = '缺少必要参数'
+      return
+    }
+
     videoInfo.value = await window.electronAPI.getDetail(siteKey as string, id as string)
 
     // Check if favorited
@@ -32,14 +46,17 @@ const loadDetail = async () => {
         videoInfo.value.pic
       )
     }
-  } catch (error) {
-    console.error('Failed to load detail:', error)
+  } catch (err: any) {
+    console.error('Failed to load detail:', err)
+    error.value = err.message || '加载失败'
   } finally {
     loading.value = false
   }
 }
 
 const toggleFavorite = async () => {
+  if (!videoInfo.value) return
+
   const { siteKey, id } = route.params
   if (isFavorite.value) {
     await window.electronAPI.removeFavorite(siteKey as string, id as string)
@@ -56,11 +73,16 @@ const toggleFavorite = async () => {
 }
 
 const playEpisode = async (sourceIndex: number, episodeIndex: number) => {
+  if (!videoInfo.value?.playSources) return
+
   selectedSource.value = sourceIndex
   selectedEpisode.value = episodeIndex
 
   const source = videoInfo.value.playSources[sourceIndex]
+  if (!source?.episodes) return
+
   const episode = source.episodes[episodeIndex]
+  if (!episode) return
 
   // Update history
   const { siteKey, id } = route.params
@@ -89,6 +111,11 @@ const goBack = () => {
     <div v-if="loading" class="loading">
       <div class="loading-spinner"></div>
       <p>加载中...</p>
+    </div>
+
+    <div v-else-if="error" class="error-state">
+      <p>{{ error }}</p>
+      <button @click="loadDetail">重试</button>
     </div>
 
     <template v-else-if="videoInfo">
@@ -136,12 +163,12 @@ const goBack = () => {
           </div>
         </div>
 
-        <div class="episode-grid">
+        <div class="episode-grid" v-if="videoInfo.playSources[selectedSource]?.episodes">
           <div
             v-for="(episode, index) in videoInfo.playSources[selectedSource].episodes"
             :key="index"
             class="episode-item"
-            :class="{ active: selectedEpisode === index && selectedSource === selectedSource }"
+            :class="{ active: selectedEpisode === index }"
             @click="playEpisode(selectedSource, index)"
           >
             {{ episode.name }}
@@ -197,6 +224,22 @@ const goBack = () => {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.error-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #e94560;
+
+  button {
+    margin-top: 15px;
+    padding: 8px 16px;
+    background-color: #e94560;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
 }
 
 .video-header {

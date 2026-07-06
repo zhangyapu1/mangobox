@@ -45,16 +45,16 @@ const goDetail = (siteKey: string, vodId: string) => {
     <div v-else-if="favorites.length > 0" class="favorites-grid">
       <div
         v-for="fav in favorites"
-        :key="`${fav[0]}-${fav[1]}`"
+        :key="`${fav.siteKey}-${fav.vodId}`"
         class="favorite-card"
       >
-        <div class="card-cover" @click="goDetail(fav[0], fav[1])">
-          <img :src="fav[3]" :alt="fav[2]" />
-          <div v-if="fav[4]" class="card-remarks">{{ fav[4] }}</div>
+        <div class="card-cover" @click="goDetail(fav.siteKey, fav.vodId)">
+          <img :src="fav.vodPic" :alt="fav.vodName" />
+          <div v-if="fav.vodRemarks" class="card-remarks">{{ fav.vodRemarks }}</div>
         </div>
         <div class="card-info">
-          <h3 class="card-title" @click="goDetail(fav[0], fav[1])">{{ fav[2] }}</h3>
-          <button class="remove-btn" @click="removeFavorite(fav[0], fav[1])">取消收藏</button>
+          <h3 class="card-title" @click="goDetail(fav.siteKey, fav.vodId)">{{ fav.vodName }}</h3>
+          <button class="remove-btn" @click="removeFavorite(fav.siteKey, fav.vodId)">取消收藏</button>
         </div>
       </div>
     </div>

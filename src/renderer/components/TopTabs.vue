@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
-const currentTab = ref('home')
+const route = useRoute()
 
 const tabs = [
   { key: 'home', label: '首页', icon: '🏠' },
@@ -14,8 +14,13 @@ const tabs = [
   { key: 'settings', label: '设置', icon: '⚙️' }
 ]
 
+const currentTab = computed(() => {
+  const path = route.path
+  const tab = tabs.find(t => path.startsWith('/' + t.key))
+  return tab?.key || 'home'
+})
+
 const handleTabClick = (key: string) => {
-  currentTab.value = key
   router.push(`/${key}`)
 }
 
@@ -35,9 +40,13 @@ const closeWindow = () => {
 <template>
   <header class="top-tabs">
     <div class="tabs-container">
-      <div class="tab-item" v-for="tab in tabs" :key="tab.key"
+      <div
+        v-for="tab in tabs"
+        :key="tab.key"
+        class="tab-item"
         :class="{ active: currentTab === tab.key }"
-        @click="handleTabClick(tab.key)">
+        @click="handleTabClick(tab.key)"
+      >
         <span class="tab-icon">{{ tab.icon }}</span>
         <span class="tab-label">{{ tab.label }}</span>
       </div>

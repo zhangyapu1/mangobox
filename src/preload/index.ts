@@ -4,7 +4,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // App
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   onWindowAction: (callback: (action: string) => void) => {
-    ipcRenderer.on('window-action', (_, action) => callback(action))
+    const handler = (_: any, action: string) => callback(action)
+    ipcRenderer.on('window-action', handler)
+    return () => ipcRenderer.removeListener('window-action', handler)
   },
 
   // Favorites
@@ -97,7 +99,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   toggleKeyboardShortcuts: () => ipcRenderer.invoke('toggle-keyboard-shortcuts'),
   isKeyboardEnabled: () => ipcRenderer.invoke('is-keyboard-enabled'),
   onKeyboardAction: (callback: (action: string) => void) => {
-    ipcRenderer.on('keyboard-action', (_, action) => callback(action))
+    const handler = (_: any, action: string) => callback(action)
+    ipcRenderer.on('keyboard-action', handler)
+    return () => ipcRenderer.removeListener('keyboard-action', handler)
   },
 
   // Cleanup

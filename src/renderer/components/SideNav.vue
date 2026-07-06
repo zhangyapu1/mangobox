@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const currentCategory = ref('')
 const categories = [
   { key: 'movie', label: '电影', icon: '🎬' },
@@ -13,6 +15,7 @@ const categories = [
 
 const handleCategoryClick = (key: string) => {
   currentCategory.value = key
+  router.push(`/category?key=${key}`)
 }
 </script>
 
@@ -22,9 +25,13 @@ const handleCategoryClick = (key: string) => {
       <h3>分类</h3>
     </div>
     <div class="nav-items">
-      <div class="nav-item" v-for="cat in categories" :key="cat.key"
+      <div
+        v-for="cat in categories"
+        :key="cat.key"
+        class="nav-item"
         :class="{ active: currentCategory === cat.key }"
-        @click="handleCategoryClick(cat.key)">
+        @click="handleCategoryClick(cat.key)"
+      >
         <span class="nav-icon">{{ cat.icon }}</span>
         <span class="nav-label">{{ cat.label }}</span>
       </div>

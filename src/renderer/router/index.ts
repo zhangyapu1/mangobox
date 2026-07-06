@@ -1,7 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes: [
     {
       path: '/',
@@ -18,7 +18,7 @@ const router = createRouter({
       component: () => import('../views/CategoryView.vue')
     },
     {
-      path: '/detail/:id',
+      path: '/detail/:siteKey/:id',
       name: 'Detail',
       component: () => import('../views/DetailView.vue')
     },
@@ -46,6 +46,10 @@ const router = createRouter({
       path: '/settings',
       name: 'Settings',
       component: () => import('../views/SettingsView.vue')
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/home'
     }
   ]
 })

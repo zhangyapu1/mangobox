@@ -4,6 +4,7 @@ import { ref, onMounted, computed } from 'vue'
 const lives = ref<any[]>([])
 const channels = ref<any[]>([])
 const currentGroup = ref('')
+const selectedLiveIndex = ref(0)
 const loading = ref(true)
 const selectedChannel = ref<any>(null)
 
@@ -75,7 +76,7 @@ const selectGroup = (group: string) => {
     <div class="live-header">
       <h1>直播</h1>
       <div v-if="lives.length > 0" class="live-source-selector">
-        <select v-model="currentGroup" @change="loadChannels(0)">
+        <select v-model="selectedLiveIndex" @change="loadChannels(selectedLiveIndex)">
           <option v-for="(live, index) in lives" :key="index" :value="index">
             {{ live.name }}
           </option>
