@@ -14,8 +14,9 @@ cd /d "%~dp0"
 taskkill /f /im electron.exe >nul 2>&1
 taskkill /f /im node.exe >nul 2>&1
 
-:: Clear old build cache
+:: Clear old build cache (both locations)
 if exist "dist-electron" rmdir /s /q "dist-electron"
+if exist "src\renderer\dist-electron" rmdir /s /q "src\renderer\dist-electron"
 
 :: Check if dependencies are installed
 if not exist "node_modules" (
