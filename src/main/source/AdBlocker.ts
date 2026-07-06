@@ -28,7 +28,6 @@ export class AdBlocker {
       'm.moatads.com',
       'px.moatads.com',
       'z.moatads.com',
-      'pagead2.googlesyndication.com',
       'tpc.googlesyndication.com',
       'googletagservices.com',
       'ads.youtube.com',
@@ -102,9 +101,19 @@ export class AdBlocker {
       const urlObj = new URL(url)
       const domain = urlObj.hostname
 
-      return Array.from(this.blockedDomains).some(blocked =>
-        domain === blocked || domain.endsWith('.' + blocked)
-      )
+      // Check exact match first (O(1) with Set)
+      if (this.blockedDomains.has(domain)) {
+        return true
+      }
+
+      // Check subdomain match
+      for (const blocked of this.blockedDomains) {
+        if (domain.endsWith('.' + blocked)) {
+          return true
+        }
+      }
+
+      return false
     } catch {
       return false
     }

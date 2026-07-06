@@ -337,6 +337,12 @@ export class MpvController {
   }
 
   destroy(): void {
+    // Reject all pending requests
+    for (const [id, pending] of this.pendingRequests) {
+      pending.reject(new Error('MpvController destroyed'))
+    }
+    this.pendingRequests.clear()
+
     if (this.socket) {
       this.socket.destroy()
       this.socket = null
