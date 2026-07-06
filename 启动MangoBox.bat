@@ -16,6 +16,9 @@ if not exist "node_modules" (
     echo.
 )
 
+:: Clear old build cache
+if exist "dist-electron" rmdir /s /q "dist-electron"
+
 call npm run dev
 
 pause
