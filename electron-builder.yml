@@ -1,7 +1,7 @@
 appId: com.mangobox.app
 productName: MangoBox
 directories:
-  release: release
+  output: release
 files:
   - dist/**/*
   - dist-electron/**/*
@@ -11,7 +11,9 @@ win:
     - target: nsis
       arch:
         - x64
-  icon: resources/icon.ico
+    - target: portable
+      arch:
+        - x64
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: MangoBox

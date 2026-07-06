@@ -12,7 +12,7 @@ interface KeyBinding {
 export class KeyboardManager {
   private window: BrowserWindow
   private bindings: Map<string, KeyBinding> = new Map()
-  private isEnabled: boolean = true
+  private isEnabled: boolean = false // Disabled by default to avoid conflicts
 
   constructor(window: BrowserWindow) {
     this.window = window
@@ -20,19 +20,19 @@ export class KeyboardManager {
   }
 
   private setupDefaultBindings(): void {
-    // Media controls
+    // Media controls (Electron accelerator format)
     this.addBinding('Space', 'togglePlay', 'Play/Pause')
-    this.addBinding('ArrowLeft', 'seekBackward', 'Seek backward 10s')
-    this.addBinding('ArrowRight', 'seekForward', 'Seek forward 10s')
-    this.addBinding('ArrowUp', 'volumeUp', 'Volume up')
-    this.addBinding('ArrowDown', 'volumeDown', 'Volume down')
-    this.addBinding('KeyM', 'toggleMute', 'Toggle mute')
+    this.addBinding('Left', 'seekBackward', 'Seek backward 10s')
+    this.addBinding('Right', 'seekForward', 'Seek forward 10s')
+    this.addBinding('Up', 'volumeUp', 'Volume up')
+    this.addBinding('Down', 'volumeDown', 'Volume down')
+    this.addBinding('M', 'toggleMute', 'Toggle mute')
 
     // Navigation
     this.addBinding('Escape', 'exitFullscreen', 'Exit fullscreen')
-    this.addBinding('KeyF', 'toggleFullscreen', 'Toggle fullscreen')
-    this.addBinding('KeyL', 'toggleLive', 'Toggle live mode')
-    this.addBinding('KeyS', 'focusSearch', 'Focus search')
+    this.addBinding('F', 'toggleFullscreen', 'Toggle fullscreen')
+    this.addBinding('L', 'toggleLive', 'Toggle live mode')
+    this.addBinding('S', 'focusSearch', 'Focus search')
 
     // Channel controls (for live TV)
     this.addBinding('PageUp', 'previousChannel', 'Previous channel')
@@ -40,7 +40,7 @@ export class KeyboardManager {
 
     // Number keys for channel selection
     for (let i = 0; i <= 9; i++) {
-      this.addBinding(`Digit${i}`, `selectChannel:${i}`, `Select channel ${i}`)
+      this.addBinding(`${i}`, `selectChannel:${i}`, `Select channel ${i}`)
     }
   }
 
@@ -81,11 +81,14 @@ export class KeyboardManager {
     // Register each binding
     this.bindings.forEach((binding, key) => {
       try {
-        globalShortcut.register(key, () => {
+        const success = globalShortcut.register(key, () => {
           this.handleAction(binding.action)
         })
+        if (!success) {
+          console.warn(`Failed to register shortcut: ${key}`)
+        }
       } catch (error) {
-        console.error(`Failed to register shortcut ${key}:`, error)
+        console.warn(`Failed to register shortcut ${key}:`, error)
       }
     })
   }
