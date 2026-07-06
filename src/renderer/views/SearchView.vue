@@ -6,38 +6,40 @@ const router = useRouter()
 const keyword = ref('')
 const searchResults = ref<any[]>([])
 const loading = ref(false)
+const error = ref('')
 const currentPage = ref(1)
-const totalPages = ref(1)
 
 const handleSearch = async () => {
   if (!keyword.value.trim()) return
 
   loading.value = true
+  error.value = ''
   try {
     const sites = await window.electronAPI.getSites()
     const searchableSites = sites.filter((s: any) => s.searchable === 1)
 
-    const results: any[] = []
-
-    // Search across all searchable sites
-    for (const site of searchableSites) {
+    // Search all sites in parallel
+    const searchPromises = searchableSites.map(async (site: any) => {
       try {
         const result = await window.electronAPI.search(site.key, keyword.value, currentPage.value)
         if (result.list) {
-          results.push(...result.list.map((item: any) => ({
+          return result.list.map((item: any) => ({
             ...item,
             siteKey: site.key,
             siteName: site.name
-          })))
+          }))
         }
       } catch (e) {
         console.error(`Search failed for ${site.name}:`, e)
       }
-    }
+      return []
+    })
 
-    searchResults.value = results
-  } catch (error) {
-    console.error('Search failed:', error)
+    const results = await Promise.all(searchPromises)
+    searchResults.value = results.flat()
+  } catch (err: any) {
+    console.error('Search failed:', err)
+    error.value = err.message || '搜索失败'
   } finally {
     loading.value = false
   }
@@ -63,7 +65,15 @@ const goDetail = (siteKey: string, vodId: string) => {
       </button>
     </div>
 
-    <div v-if="loading" class="loading">搜索中...</div>
+    <div v-if="loading" class="loading">
+      <div class="loading-spinner"></div>
+      <p>搜索中...</p>
+    </div>
+
+    <div v-else-if="error" class="error-state">
+      <p>{{ error }}</p>
+      <button @click="handleSearch">重试</button>
+    </div>
 
     <div v-else-if="searchResults.length > 0" class="search-results">
       <div class="result-count">找到 {{ searchResults.length }} 个结果</div>
@@ -140,12 +150,6 @@ const goDetail = (siteKey: string, vodId: string) => {
     opacity: 0.5;
     cursor: not-allowed;
   }
-}
-
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: #666;
 }
 
 .result-count {

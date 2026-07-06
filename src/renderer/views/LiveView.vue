@@ -6,6 +6,7 @@ const channels = ref<any[]>([])
 const currentGroup = ref('')
 const selectedLiveIndex = ref(0)
 const loading = ref(true)
+const error = ref('')
 const selectedChannel = ref<any>(null)
 
 onMounted(async () => {
@@ -22,8 +23,9 @@ const loadLives = async () => {
     if (liveList.length > 0) {
       await loadChannels(0)
     }
-  } catch (error) {
-    console.error('Failed to load lives:', error)
+  } catch (err: any) {
+    console.error('Failed to load lives:', err)
+    error.value = err.message || '加载失败'
   } finally {
     loading.value = false
   }
@@ -84,7 +86,15 @@ const selectGroup = (group: string) => {
       </div>
     </div>
 
-    <div v-if="loading" class="loading">加载中...</div>
+    <div v-if="loading" class="loading">
+      <div class="loading-spinner"></div>
+      <p>加载中...</p>
+    </div>
+
+    <div v-else-if="error" class="error-state">
+      <p>{{ error }}</p>
+      <button @click="loadLives">重试</button>
+    </div>
 
     <div v-else-if="channels.length > 0" class="live-content">
       <div class="group-sidebar">

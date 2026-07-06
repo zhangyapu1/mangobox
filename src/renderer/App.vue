@@ -17,7 +17,7 @@ import PlayerView from './components/PlayerView.vue'
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .app-container {
   display: flex;
   flex-direction: column;

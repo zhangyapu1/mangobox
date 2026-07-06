@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const loading = ref(true)
+const error = ref('')
 const categories = ref<any[]>([])
 const featuredVideos = ref<any[]>([])
 const selectedCategory = ref('')
@@ -30,8 +31,9 @@ const loadHomeContent = async () => {
     if (categories.value.length > 0) {
       selectedCategory.value = categories.value[0].type_id
     }
-  } catch (error) {
-    console.error('Failed to load home content:', error)
+  } catch (err: any) {
+    console.error('Failed to load home content:', err)
+    error.value = err.message || '加载失败'
   } finally {
     loading.value = false
   }
@@ -66,6 +68,11 @@ const loadCategory = async (categoryId: string) => {
     <div v-if="loading" class="loading">
       <div class="loading-spinner"></div>
       <p>加载中...</p>
+    </div>
+
+    <div v-else-if="error" class="error-state">
+      <p>{{ error }}</p>
+      <button @click="loadHomeContent">重试</button>
     </div>
 
     <template v-else>
