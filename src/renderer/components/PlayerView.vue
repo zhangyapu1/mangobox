@@ -51,12 +51,27 @@ const playUrl = (url: string) => {
   error.value = ''
   destroyHls()
 
+  // Extract origin from URL for Referer header
+  let origin = ''
+  try {
+    const urlObj = new URL(url)
+    origin = urlObj.origin
+  } catch {}
+
   if (url.includes('.m3u8') || url.includes('m3u8')) {
     // HLS stream
     if (Hls.isSupported()) {
       hls.value = new Hls({
         maxBufferLength: 30,
-        maxMaxBufferLength: 60
+        maxMaxBufferLength: 60,
+        xhrSetup: (xhr, requestUrl) => {
+          // Add common headers for video requests
+          xhr.withCredentials = false
+          if (origin) {
+            xhr.setRequestHeader('Referer', origin + '/')
+          }
+          xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
+        }
       })
       hls.value.loadSource(url)
       hls.value.attachMedia(videoRef.value)
@@ -65,7 +80,16 @@ const playUrl = (url: string) => {
       })
       hls.value.on(Hls.Events.ERROR, (_, data) => {
         if (data.fatal) {
-          error.value = '播放失败: ' + data.type
+          if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+            error.value = '网络错误，请检查网络或切换源'
+            // Try to recover
+            hls.value?.startLoad()
+          } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+            error.value = '媒体错误，尝试恢复...'
+            hls.value?.recoverMediaError()
+          } else {
+            error.value = '播放失败: ' + data.type
+          }
           console.error('HLS fatal error:', data)
         }
       })

@@ -10,6 +10,7 @@ const playerTitle = ref('')
 const playerEpisodes = ref<Array<{ name: string; url: string }>>([])
 const currentEpisodeIndex = ref(0)
 const showPlayer = ref(false)
+const playerWidth = ref(450)
 
 const playVideo = (url: string, title: string, episodes?: Array<{ name: string; url: string }>, episodeIndex?: number) => {
   playerUrl.value = url
@@ -24,6 +25,41 @@ const onEpisodeChange = (index: number) => {
     currentEpisodeIndex.value = index
     playerUrl.value = playerEpisodes.value[index].url
   }
+}
+
+const closePlayer = () => {
+  showPlayer.value = false
+  playerUrl.value = ''
+}
+
+// Resize player
+let isResizing = false
+let startX = 0
+let startWidth = 0
+
+const startResize = (e: MouseEvent) => {
+  isResizing = true
+  startX = e.clientX
+  startWidth = playerWidth.value
+  document.addEventListener('mousemove', onResize)
+  document.addEventListener('mouseup', stopResize)
+  document.body.style.cursor = 'col-resize'
+  document.body.style.userSelect = 'none'
+}
+
+const onResize = (e: MouseEvent) => {
+  if (!isResizing) return
+  const diff = startX - e.clientX
+  const newWidth = Math.max(300, Math.min(800, startWidth + diff))
+  playerWidth.value = newWidth
+}
+
+const stopResize = () => {
+  isResizing = false
+  document.removeEventListener('mousemove', onResize)
+  document.removeEventListener('mouseup', stopResize)
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
 }
 
 // Provide player functions to child components
@@ -43,18 +79,25 @@ provide('playerState', {
     <TopTabs />
     <div class="main-content">
       <SideNav />
-      <div class="content-area" :class="{ 'with-player': showPlayer }">
+      <div class="content-area">
         <router-view />
       </div>
-      <div v-if="showPlayer" class="player-area">
-        <PlayerView
-          :url="playerUrl"
-          :title="playerTitle"
-          :episodes="playerEpisodes"
-          :currentEpisodeIndex="currentEpisodeIndex"
-          @episode-change="onEpisodeChange"
-        />
-      </div>
+      <template v-if="showPlayer">
+        <div class="resize-handle" @mousedown="startResize"></div>
+        <div class="player-area" :style="{ width: playerWidth + 'px' }">
+          <div class="player-header">
+            <span class="player-title">{{ playerTitle }}</span>
+            <button class="close-btn" @click="closePlayer">✕</button>
+          </div>
+          <PlayerView
+            :url="playerUrl"
+            :title="playerTitle"
+            :episodes="playerEpisodes"
+            :currentEpisodeIndex="currentEpisodeIndex"
+            @episode-change="onEpisodeChange"
+          />
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -78,16 +121,56 @@ provide('playerState', {
   overflow-y: auto;
   padding: 20px;
   background-color: #16213e;
+}
 
-  &.with-player {
-    flex: 1;
+.resize-handle {
+  width: 4px;
+  background-color: #0f3460;
+  cursor: col-resize;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #e94560;
   }
 }
 
 .player-area {
-  width: 450px;
-  min-width: 450px;
   background-color: #000;
   border-left: 1px solid #0f3460;
+  display: flex;
+  flex-direction: column;
+  min-width: 300px;
+  max-width: 800px;
+}
+
+.player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background-color: #0f3460;
+  border-bottom: 1px solid #1a1a2e;
+}
+
+.player-title {
+  font-size: 13px;
+  color: #ccc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 2px 6px;
+
+  &:hover {
+    color: #e94560;
+  }
 }
 </style>
