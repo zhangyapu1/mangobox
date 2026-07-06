@@ -1,40 +1,98 @@
 import { Site, VodItem, VideoInfo, SpiderResult, SpiderDetailResult, SpiderPlayResult } from './types'
+import { PythonBridge } from '../spider/PythonBridge'
+import { JsEngine } from '../spider/JsEngine'
+import { DrpyEngine } from '../spider/DrpyEngine'
 
-// This will be implemented to route to Python or JS spider execution
 export class SpiderRouter {
+  private pythonBridge: PythonBridge
+  private jsEngine: JsEngine
+  private drpyEngine: DrpyEngine
+  private loadedSpiders: Map<string, { type: 'python' | 'js' | 'drpy', loaded: boolean }> = new Map()
+
+  constructor() {
+    this.pythonBridge = new PythonBridge()
+    this.jsEngine = new JsEngine()
+    this.drpyEngine = new DrpyEngine()
+  }
+
   async execute(site: Site, method: string, params: any): Promise<any> {
-    // Determine spider type based on api field
-    if (site.api.startsWith('csp_')) {
-      // csp_* - use JAR spider (not supported without Java)
-      console.warn('JAR spider not supported:', site.api)
+    try {
+      // Load spider if not already loaded
+      if (!this.loadedSpiders.has(site.key)) {
+        await this.loadSpider(site)
+      }
+
+      const spiderInfo = this.loadedSpiders.get(site.key)
+      if (!spiderInfo || !spiderInfo.loaded) {
+        console.warn('Spider not loaded:', site.key)
+        return null
+      }
+
+      // Route to appropriate engine
+      switch (spiderInfo.type) {
+        case 'python':
+          return await this.executePythonSpider(site, method, params)
+        case 'js':
+          return await this.executeJsSpider(site, method, params)
+        case 'drpy':
+          return await this.executeDrpySpider(site, method, params)
+        default:
+          console.warn('Unknown spider type:', spiderInfo.type)
+          return null
+      }
+    } catch (error) {
+      console.error('Spider execution failed:', error)
       return null
     }
+  }
 
-    if (site.api.endsWith('.py')) {
-      // Python spider
-      return await this.executePythonSpider(site, method, params)
+  private async loadSpider(site: Site): Promise<void> {
+    try {
+      if (site.api.startsWith('csp_')) {
+        // csp_* - use JAR spider (not supported without Java)
+        console.warn('JAR spider not supported:', site.api)
+        this.loadedSpiders.set(site.key, { type: 'js', loaded: false })
+        return
+      }
+
+      if (site.api.endsWith('.py')) {
+        // Python spider
+        await this.pythonBridge.loadSpider(site.key, site.api)
+        this.loadedSpiders.set(site.key, { type: 'python', loaded: true })
+        return
+      }
+
+      if (site.api.endsWith('.js')) {
+        // Check if it's a drpy2 script
+        if (site.api.includes('drpy') || site.ext?.includes('drpy')) {
+          await this.drpyEngine.loadScript(site.key, site.api)
+          this.loadedSpiders.set(site.key, { type: 'drpy', loaded: true })
+        } else {
+          // Regular JS spider
+          await this.jsEngine.loadScript(site.key, site.api)
+          this.loadedSpiders.set(site.key, { type: 'js', loaded: true })
+        }
+        return
+      }
+
+      console.warn('Unknown spider API:', site.api)
+      this.loadedSpiders.set(site.key, { type: 'js', loaded: false })
+    } catch (error) {
+      console.error('Failed to load spider:', error)
+      this.loadedSpiders.set(site.key, { type: 'js', loaded: false })
     }
-
-    if (site.api.endsWith('.js')) {
-      // JavaScript spider
-      return await this.executeJsSpider(site, method, params)
-    }
-
-    console.warn('Unknown spider type:', site.api)
-    return null
   }
 
   private async executePythonSpider(site: Site, method: string, params: any): Promise<any> {
-    // TODO: Implement Python Bridge communication
-    // This will send JSON-RPC to Python subprocess
-    console.log('Execute Python spider:', site.api, method, params)
-    return null
+    return await this.pythonBridge.call(method, { key: site.key, ...params })
   }
 
   private async executeJsSpider(site: Site, method: string, params: any): Promise<any> {
-    // TODO: Implement JS spider execution in Node VM
-    console.log('Execute JS spider:', site.api, method, params)
-    return null
+    return await this.jsEngine.call(site.key, method, params)
+  }
+
+  private async executeDrpySpider(site: Site, method: string, params: any): Promise<any> {
+    return await this.drpyEngine.call(site.key, method, params)
   }
 
   async getHomeContent(site: Site): Promise<{ categories: any[]; list: VodItem[] }> {
@@ -139,5 +197,12 @@ export class SpiderRouter {
       content: vod.vod_content,
       playSources
     }
+  }
+
+  destroy(): void {
+    this.pythonBridge.destroyAll()
+    this.jsEngine.destroyAll()
+    this.drpyEngine.destroyAll()
+    this.loadedSpiders.clear()
   }
 }

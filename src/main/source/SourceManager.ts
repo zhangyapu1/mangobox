@@ -1,15 +1,31 @@
 import fetch from 'electron-fetch'
 import { TvBoxSource, Site, Live, Parse, VodItem, VideoInfo, LiveChannel } from './types'
 import { CmsClient } from './CmsClient'
+import { SpiderRouter } from './SpiderRouter'
+import { GitHubProxy } from './GitHubProxy'
 
 export class SourceManager {
   private currentSource: TvBoxSource | null = null
   private cmsClients: Map<string, CmsClient> = new Map()
+  private spiderRouter: SpiderRouter
+  private githubProxy: GitHubProxy
   private activeSite: Site | null = null
+
+  constructor() {
+    this.spiderRouter = new SpiderRouter()
+    this.githubProxy = new GitHubProxy()
+  }
 
   async loadSource(url: string): Promise<TvBoxSource> {
     try {
-      const response = await fetch(url)
+      // Use GitHub proxy if needed
+      const fetchUrl = await this.githubProxy.proxyUrl(url)
+
+      const response = await fetch(fetchUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      })
       const data = await response.json() as TvBoxSource
 
       // Validate source structure
@@ -86,7 +102,11 @@ export class SourceManager {
       }
     }
 
-    // Type 3 (Spider) - will be handled by SpiderRouter
+    // Type 3 (Spider) - use SpiderRouter
+    if (site.type === 3) {
+      return await this.spiderRouter.getHomeContent(site)
+    }
+
     return { categories: [], list: [] }
   }
 
@@ -101,6 +121,10 @@ export class SourceManager {
       if (client) {
         return await client.getCategoryList(categoryId, page)
       }
+    }
+
+    if (site.type === 3) {
+      return await this.spiderRouter.getCategoryList(site, categoryId, page)
     }
 
     return { list: [], page: 1, pageCount: 1 }
@@ -119,6 +143,10 @@ export class SourceManager {
       }
     }
 
+    if (site.type === 3) {
+      return await this.spiderRouter.getDetail(site, vodId)
+    }
+
     return null
   }
 
@@ -135,12 +163,36 @@ export class SourceManager {
       }
     }
 
+    if (site.type === 3) {
+      return await this.spiderRouter.search(site, keyword, page)
+    }
+
     return { list: [], page: 1, pageCount: 1 }
+  }
+
+  async getPlayerContent(siteKey: string, flag: string, id: string, vipFlags: string[]): Promise<any> {
+    const site = this.currentSource?.sites.find(s => s.key === siteKey)
+    if (!site) {
+      return null
+    }
+
+    if (site.type === 3) {
+      return await this.spiderRouter.getPlayerContent(site, flag, id, vipFlags)
+    }
+
+    return null
   }
 
   async parseLiveChannels(live: Live): Promise<LiveChannel[]> {
     try {
-      const response = await fetch(live.url)
+      // Use GitHub proxy if needed
+      const url = await this.githubProxy.proxyUrl(live.url)
+
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': live.ua || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      })
       const text = await response.text()
 
       // Parse M3U/M3U8 format
@@ -217,5 +269,9 @@ export class SourceManager {
     }
 
     return channels
+  }
+
+  getGitHubProxy(): GitHubProxy {
+    return this.githubProxy
   }
 }

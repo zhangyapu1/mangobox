@@ -1,9 +1,18 @@
 import fetch from 'electron-fetch'
+import { BrowserWindow } from 'electron'
 import { Parse } from '../source/types'
+import { WebViewParser } from './WebViewParser'
 
 export class ParseManager {
   private parses: Parse[] = []
   private flags: string[] = []
+  private webViewParser: WebViewParser | null = null
+
+  constructor(window?: BrowserWindow) {
+    if (window) {
+      this.webViewParser = new WebViewParser(window)
+    }
+  }
 
   setParses(parses: Parse[]): void {
     this.parses = parses
@@ -33,7 +42,7 @@ export class ParseManager {
 
     try {
       switch (parse.type) {
-        case 0: // Web parse
+        case 0: // Web parse (needs WebView)
           return await this.webParse(parse, url)
         case 1: // JSON API parse
           return await this.jsonParse(parse, url)
@@ -50,8 +59,16 @@ export class ParseManager {
   }
 
   private async webParse(parse: Parse, url: string): Promise<string> {
-    // Web parse returns HTML with embedded video URL
-    // We need to extract the video URL from the response
+    // Use WebView parser if available
+    if (this.webViewParser) {
+      try {
+        return await this.webViewParser.parseUrl(parse.url, url)
+      } catch (error) {
+        console.error('WebView parse failed, falling back to regex:', error)
+      }
+    }
+
+    // Fallback: Try to extract from HTML
     const parseUrl = `${parse.url}${encodeURIComponent(url)}`
 
     try {
@@ -61,10 +78,6 @@ export class ParseManager {
       const html = await response.text()
 
       // Extract video URL from HTML
-      // Common patterns:
-      // - "url":"http://..."
-      // - src="http://..."
-      // - file: "http://..."
       const urlMatch = html.match(/(?:url|src|file)\s*[:=]\s*["']([^"']+\.(?:m3u8|mp4|flv)[^"']*)["']/i)
 
       if (urlMatch) {
@@ -123,5 +136,11 @@ export class ParseManager {
   // Helper to get parse names for UI
   getParseNames(): string[] {
     return this.parses.map(p => p.name)
+  }
+
+  destroy(): void {
+    if (this.webViewParser) {
+      this.webViewParser.destroy()
+    }
   }
 }
