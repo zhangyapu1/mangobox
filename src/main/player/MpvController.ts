@@ -40,18 +40,17 @@ export class MpvController {
       return
     }
 
-    // Get window handle for embedding
-    const hwnd = this.window.getNativeWindowHandle().readInt32LE()
+    console.log('Initializing mpv from:', mpvPath)
 
-    // Spawn mpv process
+    // Spawn mpv process (in its own window for now)
     this.process = spawn(mpvPath, [
-      `--wid=${hwnd}`,
       `--input-ipc-server=${this.pipeName}`,
       '--hwdec=auto',
       '--keep-open=yes',
       '--no-terminal',
       '--idle=yes',
-      '--volume=80'
+      '--volume=80',
+      '--title=MangoBox Player'
     ], {
       stdio: ['pipe', 'pipe', 'pipe']
     })
