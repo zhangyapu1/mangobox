@@ -42,7 +42,7 @@ export class MpvController {
 
     console.log('Initializing mpv from:', mpvPath)
 
-    // Spawn mpv as independent window (more reliable than --wid embedding)
+    // Spawn mpv as independent window
     this.process = spawn(mpvPath, [
       `--input-ipc-server=${this.pipeName}`,
       '--hwdec=auto',
@@ -51,8 +51,11 @@ export class MpvController {
       '--idle=yes',
       '--volume=80',
       '--title=MangoBox Player',
-      '--on-top=yes',
-      '--geometry=640x360'
+      '--ontop=yes',
+      '--force-window=yes',
+      '--geometry=800x450+100+100',
+      '--border=yes',
+      '--cursor-autohide=1000'
     ], {
       stdio: ['pipe', 'pipe', 'pipe'],
       detached: false
@@ -179,17 +182,17 @@ export class MpvController {
   private handleEvent(event: MpvEvent): void {
     switch (event.event) {
       case 'property-change':
-        if (event.name === 'time-pos' && event.data !== undefined) {
-          this.currentTime = event.data
+        if (event.name === 'time-pos' && event.data !== undefined && event.data !== null) {
+          this.currentTime = Number(event.data) || 0
           this.emit('timeupdate', this.currentTime)
-        } else if (event.name === 'duration' && event.data !== undefined) {
-          this.duration = event.data
+        } else if (event.name === 'duration' && event.data !== undefined && event.data !== null) {
+          this.duration = Number(event.data) || 0
           this.emit('durationchange', this.duration)
-        } else if (event.name === 'pause') {
+        } else if (event.name === 'pause' && event.data !== undefined) {
           this.isPlaying = !event.data
           this.emit(this.isPlaying ? 'play' : 'pause')
-        } else if (event.name === 'volume' && event.data !== undefined) {
-          this.volume = event.data
+        } else if (event.name === 'volume' && event.data !== undefined && event.data !== null) {
+          this.volume = Number(event.data) || 0
           this.emit('volumechange', this.volume)
         }
         break
@@ -200,7 +203,12 @@ export class MpvController {
         break
 
       case 'file-loaded':
+        console.log('mpv file loaded')
         this.emit('loaded')
+        break
+
+      case 'idle':
+        this.isPlaying = false
         break
     }
   }
@@ -230,7 +238,9 @@ export class MpvController {
   private observeProperty(name: string): void {
     this.sendCommand({
       command: ['observe_property', 1, name]
-    }).catch(() => {})
+    }).catch((err) => {
+      console.warn(`Failed to observe ${name}:`, err.message)
+    })
   }
 
   on(event: string, handler: Function): void {
