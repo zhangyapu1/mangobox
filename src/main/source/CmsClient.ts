@@ -50,13 +50,18 @@ export class CmsClient {
 
   async getHomeContent(): Promise<{ categories: any[]; list: VodItem[] }> {
     try {
-      // Use ac=detail to get images in list response
-      const url = `${this.baseUrl}?ac=detail`
-      const response = await fetch(url)
-      const data = await response.json() as CmsListResponse
+      // Make two calls: ac=list for categories, ac=detail for videos with images
+      const [listResponse, detailResponse] = await Promise.all([
+        fetch(`${this.baseUrl}?ac=list`),
+        fetch(`${this.baseUrl}?ac=detail`)
+      ])
+
+      const listData = await listResponse.json() as CmsListResponse
+      const detailData = await detailResponse.json() as CmsListResponse
+
       return {
-        categories: data.class || [],
-        list: data.list || []
+        categories: listData.class || [],
+        list: detailData.list || []
       }
     } catch (error) {
       console.error('Failed to get home content:', error)

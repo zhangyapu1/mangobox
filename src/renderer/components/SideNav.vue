@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 const currentCategory = ref('')
 const categories = ref<any[]>([])
 const sites = ref<any[]>([])
@@ -25,7 +26,16 @@ const categoryIcons: Record<string, string> = {
 }
 
 onMounted(async () => {
+  // Wait a bit for the source to load
+  await new Promise(resolve => setTimeout(resolve, 500))
   await loadData()
+})
+
+// Reload when navigating to home
+watch(() => route.path, async (newPath) => {
+  if (newPath === '/home') {
+    await loadData()
+  }
 })
 
 const loadData = async () => {
