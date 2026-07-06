@@ -242,18 +242,27 @@ export function setupIPC(window: BrowserWindow): void {
   })
 
   ipcMain.handle('play-video', async (_, url: string) => {
-    if (!mpvController) return { success: false, error: 'Player not initialized' }
-
     try {
+      // Auto-initialize player if not already done
+      if (!mpvController) {
+        console.log('Auto-initializing mpv player...')
+        mpvController = new MpvController(window)
+        await mpvController.init()
+      }
+
       // Parse URL if needed
       let finalUrl = url
       if (parseManager && parseManager.needsParsing(url)) {
+        console.log('Parsing URL:', url)
         finalUrl = await parseManager.parseUrl(url)
+        console.log('Parsed URL:', finalUrl)
       }
 
+      console.log('Playing video:', finalUrl)
       await mpvController.play(finalUrl)
       return { success: true }
     } catch (error: any) {
+      console.error('Play video failed:', error)
       return { success: false, error: error.message }
     }
   })
