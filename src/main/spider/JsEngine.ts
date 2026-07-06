@@ -5,7 +5,7 @@ export class JsEngine {
   private scripts: Map<string, any> = new Map()
   private readonly CALL_TIMEOUT = 30000 // 30 seconds
 
-  async loadScript(key: string, jsUrl: string): Promise<void> {
+  async loadScript(key: string, jsUrl: string): Promise<boolean> {
     try {
       let code: string
 
@@ -13,7 +13,14 @@ export class JsEngine {
         const response = await fetch(jsUrl)
         code = await response.text()
       } else {
-        throw new Error('Local JS files not supported yet')
+        console.warn('Local JS files not supported:', jsUrl)
+        return false
+      }
+
+      // Check if script uses ES module syntax (not supported in VM)
+      if (code.includes('import ') && code.includes(' from ')) {
+        console.warn(`JS Spider ${key} uses ES modules (not supported in VM), skipping`)
+        return false
       }
 
       // Create a sandbox context (without setTimeout/setInterval to prevent leaks)
@@ -47,14 +54,17 @@ export class JsEngine {
 
       if (Spider && typeof Spider === 'function') {
         this.scripts.set(key, new Spider())
+        return true
       } else if (typeof sandbox.module.exports === 'function') {
         this.scripts.set(key, new sandbox.module.exports())
+        return true
       } else {
         this.scripts.set(key, sandbox.module.exports)
+        return true
       }
     } catch (error) {
-      console.error('Failed to load JS script:', error)
-      throw error
+      console.warn(`Failed to load JS spider ${key}:`, (error as Error).message)
+      return false
     }
   }
 

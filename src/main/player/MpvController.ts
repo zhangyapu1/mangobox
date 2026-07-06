@@ -27,10 +27,6 @@ export class MpvController {
   private currentTime = 0
   private duration = 0
   private volume = 80
-  private videoX = 0
-  private videoY = 0
-  private videoWidth = 0
-  private videoHeight = 0
 
   constructor(window: BrowserWindow) {
     this.window = window
@@ -46,51 +42,31 @@ export class MpvController {
 
     console.log('Initializing mpv from:', mpvPath)
 
-    // Get the window handle for embedding
-    const hwnd = this.window.getNativeWindowHandle().readInt32LE()
-    console.log('Window HWND:', hwnd)
-
-    // Calculate video area position (right side of window)
-    const windowBounds = this.window.getBounds()
-    const display = screen.getDisplayMatching(windowBounds)
-
-    // Video player area: right 400px of window
-    this.videoX = windowBounds.x + windowBounds.width - 400
-    this.videoY = windowBounds.y + 50 // Below top tabs
-    this.videoWidth = 400
-    this.videoHeight = windowBounds.height - 50
-
-    console.log('Video area:', { x: this.videoX, y: this.videoY, width: this.videoWidth, height: this.videoHeight })
-
-    // Spawn mpv process embedded in the window
+    // Spawn mpv as independent window (more reliable than --wid embedding)
     this.process = spawn(mpvPath, [
-      `--wid=${hwnd}`,
       `--input-ipc-server=${this.pipeName}`,
       '--hwdec=auto',
       '--keep-open=yes',
       '--no-terminal',
       '--idle=yes',
       '--volume=80',
-      `--geometry=${this.videoWidth}x${this.videoHeight}+${this.videoX - windowBounds.x}+${this.videoY - windowBounds.y}`,
-      '--border=no',
-      '--ontop=yes'
+      '--title=MangoBox Player',
+      '--on-top=yes',
+      '--geometry=640x360'
     ], {
-      stdio: ['pipe', 'pipe', 'pipe']
+      stdio: ['pipe', 'pipe', 'pipe'],
+      detached: false
     })
 
     if (this.process.stdout) {
       this.process.stdout.on('data', (data: Buffer) => {
-        console.log('mpv stdout:', data.toString())
+        // Ignore mpv stdout
       })
     }
 
     if (this.process.stderr) {
       this.process.stderr.on('data', (data: Buffer) => {
-        // Ignore common mpv warnings
-        const msg = data.toString()
-        if (!msg.includes('deprecated') && !msg.includes('Warning')) {
-          console.error('mpv stderr:', msg)
-        }
+        // Ignore mpv stderr warnings
       })
     }
 
@@ -98,6 +74,7 @@ export class MpvController {
       console.log('mpv exited with code:', code)
       this.process = null
       this.socket = null
+      this.isPlaying = false
     })
 
     this.process.on('error', (err) => {
@@ -105,25 +82,8 @@ export class MpvController {
       this.process = null
     })
 
-    // Listen for window resize/move to update mpv position
-    this.window.on('resize', () => this.updateMpvPosition())
-    this.window.on('move', () => this.updateMpvPosition())
-
     // Wait for mpv to start and connect to IPC
     await this.waitForConnection()
-  }
-
-  private updateMpvPosition(): void {
-    if (!this.process) return
-
-    const windowBounds = this.window.getBounds()
-    this.videoX = windowBounds.x + windowBounds.width - 400
-    this.videoY = windowBounds.y + 50
-
-    // Send geometry update to mpv
-    this.sendCommand({
-      command: ['set_property', 'geometry', `${this.videoWidth}x${this.videoHeight}+${this.videoX - windowBounds.x}+${this.videoY - windowBounds.y}`]
-    }).catch(() => {}) // Ignore errors if mpv is busy
   }
 
   private findMpv(): string | null {
@@ -133,13 +93,13 @@ export class MpvController {
       return bundledMpv
     }
 
-    // Check for system mpv
+    // Check for system mpv in PATH
     return 'mpv'
   }
 
   private async waitForConnection(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const maxRetries = 20
+      const maxRetries = 30
       let retries = 0
 
       const tryConnect = () => {
@@ -158,12 +118,12 @@ export class MpvController {
           if (retries >= maxRetries) {
             reject(new Error('Failed to connect to mpv IPC'))
           } else {
-            setTimeout(tryConnect, 500)
+            setTimeout(tryConnect, 300)
           }
         })
       }
 
-      setTimeout(tryConnect, 1000)
+      setTimeout(tryConnect, 500)
     })
   }
 
@@ -286,6 +246,7 @@ export class MpvController {
   }
 
   async play(url: string): Promise<void> {
+    console.log('mpv playing:', url)
     await this.sendCommand({
       command: ['loadfile', url]
     })
@@ -346,40 +307,6 @@ export class MpvController {
   async toggleFullscreen(): Promise<void> {
     await this.sendCommand({
       command: ['cycle', 'fullscreen']
-    })
-  }
-
-  async getSubtitles(): Promise<any[]> {
-    try {
-      const trackList = await this.sendCommand({
-        command: ['get_property', 'track-list']
-      })
-      return trackList.filter((t: any) => t.type === 'sub')
-    } catch {
-      return []
-    }
-  }
-
-  async setSubtitle(index: number): Promise<void> {
-    await this.sendCommand({
-      command: ['set_property', 'sub', index]
-    })
-  }
-
-  async getAudioTracks(): Promise<any[]> {
-    try {
-      const trackList = await this.sendCommand({
-        command: ['get_property', 'track-list']
-      })
-      return trackList.filter((t: any) => t.type === 'audio')
-    } catch {
-      return []
-    }
-  }
-
-  async setAudioTrack(index: number): Promise<void> {
-    await this.sendCommand({
-      command: ['set_property', 'audio', index]
     })
   }
 

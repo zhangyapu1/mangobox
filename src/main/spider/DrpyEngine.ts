@@ -29,7 +29,7 @@ export class DrpyEngine {
   private scriptCache: Map<string, string> = new Map()
   private readonly CALL_TIMEOUT = 30000 // 30 seconds
 
-  async loadScript(key: string, jsUrl: string): Promise<void> {
+  async loadScript(key: string, jsUrl: string): Promise<boolean> {
     try {
       let code: string
 
@@ -41,10 +41,17 @@ export class DrpyEngine {
           const response = await fetch(jsUrl)
           code = await response.text()
         } else {
-          throw new Error('Local JS files not supported yet')
+          console.warn('Local JS files not supported:', jsUrl)
+          return false
         }
         // Cache the script
         this.scriptCache.set(jsUrl, code)
+      }
+
+      // Check if script uses ES module syntax
+      if (code.includes('import ') && code.includes(' from ')) {
+        console.warn(`Drpy spider ${key} uses ES modules (not supported), skipping`)
+        return false
       }
 
       // Create drpy2 runtime context
@@ -67,12 +74,14 @@ export class DrpyEngine {
 
       if (spider && typeof spider === 'object') {
         this.scripts.set(key, spider)
+        return true
       } else {
-        throw new Error('Script did not return a spider object')
+        console.warn('Drpy script did not return a spider object:', key)
+        return false
       }
     } catch (error) {
-      console.error('Failed to load drpy script:', error)
-      throw error
+      console.warn(`Failed to load drpy script ${key}:`, (error as Error).message)
+      return false
     }
   }
 

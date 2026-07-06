@@ -65,12 +65,12 @@ export class SpiderRouter {
       if (site.api.endsWith('.js')) {
         // Check if it's a drpy2 script
         if (site.api.includes('drpy') || site.ext?.includes('drpy')) {
-          await this.drpyEngine.loadScript(site.key, site.api)
-          this.loadedSpiders.set(site.key, { type: 'drpy', loaded: true })
+          const loaded = await this.drpyEngine.loadScript(site.key, site.api)
+          this.loadedSpiders.set(site.key, { type: 'drpy', loaded })
         } else {
           // Regular JS spider
-          await this.jsEngine.loadScript(site.key, site.api)
-          this.loadedSpiders.set(site.key, { type: 'js', loaded: true })
+          const loaded = await this.jsEngine.loadScript(site.key, site.api)
+          this.loadedSpiders.set(site.key, { type: 'js', loaded })
         }
         return
       }
