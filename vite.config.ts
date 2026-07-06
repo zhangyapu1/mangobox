@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [
     vue(),
     electron({
-      entry: 'src/main/index.ts',
+      entry: resolve(__dirname, 'src/main/index.ts'),
       vite: {
         build: {
           outDir: 'dist-electron/main',
@@ -18,13 +18,14 @@ export default defineConfig({
       }
     })
   ],
+  root: resolve(__dirname, 'src/renderer'),
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src')
     }
   },
   build: {
-    outDir: 'dist',
+    outDir: resolve(__dirname, 'dist'),
     emptyOutDir: true
   }
 })
