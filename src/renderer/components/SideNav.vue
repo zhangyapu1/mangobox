@@ -5,7 +5,10 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const currentCategory = ref('')
 const categories = ref<any[]>([])
+const sites = ref<any[]>([])
+const activeSite = ref<any>(null)
 const loading = ref(true)
+const showSiteList = ref(false)
 
 // Category icons mapping
 const categoryIcons: Record<string, string> = {
@@ -22,13 +25,17 @@ const categoryIcons: Record<string, string> = {
 }
 
 onMounted(async () => {
-  await loadCategories()
+  await loadData()
 })
 
-const loadCategories = async () => {
+const loadData = async () => {
   loading.value = true
   try {
-    // Get home content which includes categories
+    // Load sites
+    sites.value = await window.electronAPI.getSites()
+    activeSite.value = await window.electronAPI.getActiveSite()
+
+    // Load categories
     const result = await window.electronAPI.getHomeContent()
     if (result.categories && result.categories.length > 0) {
       categories.value = result.categories.map((cat: any) => ({
@@ -38,9 +45,32 @@ const loadCategories = async () => {
       }))
     }
   } catch (error) {
-    console.error('Failed to load categories:', error)
+    console.error('Failed to load data:', error)
   } finally {
     loading.value = false
+  }
+}
+
+const handleSiteChange = async (siteKey: string) => {
+  try {
+    await window.electronAPI.setActiveSite(siteKey)
+    activeSite.value = sites.value.find((s: any) => s.key === siteKey)
+    showSiteList.value = false
+
+    // Reload categories for new site
+    const result = await window.electronAPI.getHomeContent(siteKey)
+    if (result.categories && result.categories.length > 0) {
+      categories.value = result.categories.map((cat: any) => ({
+        key: cat.type_id,
+        label: cat.type_name,
+        icon: categoryIcons[cat.type_name] || '📁'
+      }))
+    }
+
+    // Navigate to home to refresh content
+    router.push('/home')
+  } catch (error) {
+    console.error('Failed to change site:', error)
   }
 }
 
@@ -48,10 +78,35 @@ const handleCategoryClick = (key: string | number) => {
   currentCategory.value = String(key)
   router.push(`/category?key=${key}`)
 }
+
+const toggleSiteList = () => {
+  showSiteList.value = !showSiteList.value
+}
 </script>
 
 <template>
   <aside class="side-nav">
+    <!-- Video Source Selector -->
+    <div class="source-selector">
+      <div class="source-header" @click="toggleSiteList">
+        <span class="source-icon">📺</span>
+        <span class="source-name">{{ activeSite?.name || '选择源' }}</span>
+        <span class="source-arrow">{{ showSiteList ? '▲' : '▼' }}</span>
+      </div>
+      <div v-if="showSiteList" class="source-list">
+        <div
+          v-for="site in sites"
+          :key="site.key"
+          class="source-item"
+          :class="{ active: activeSite?.key === site.key }"
+          @click="handleSiteChange(site.key)"
+        >
+          {{ site.name }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories -->
     <div class="nav-header">
       <h3>分类</h3>
     </div>
@@ -78,6 +133,64 @@ const handleCategoryClick = (key: string | number) => {
   border-right: 1px solid #0f3460;
   display: flex;
   flex-direction: column;
+}
+
+.source-selector {
+  border-bottom: 1px solid #0f3460;
+}
+
+.source-header {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.source-icon {
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+.source-name {
+  flex: 1;
+  font-size: 14px;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.source-arrow {
+  font-size: 12px;
+  color: #888;
+}
+
+.source-list {
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: #0f3460;
+  border-top: 1px solid #1a1a2e;
+}
+
+.source-item {
+  padding: 10px 15px;
+  font-size: 13px;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &.active {
+    background-color: #e94560;
+  }
 }
 
 .nav-header {
