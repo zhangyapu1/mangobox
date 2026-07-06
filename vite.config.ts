@@ -10,7 +10,7 @@ export default defineConfig({
       entry: resolve(__dirname, 'src/main/index.ts'),
       vite: {
         build: {
-          outDir: 'dist-electron/main',
+          outDir: resolve(__dirname, 'dist-electron/main'),
           rollupOptions: {
             external: ['electron']
           }
