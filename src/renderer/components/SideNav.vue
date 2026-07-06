@@ -33,16 +33,22 @@ const loadData = async () => {
   try {
     // Load sites
     sites.value = await window.electronAPI.getSites()
+    console.log('Loaded sites:', sites.value.length)
+
     activeSite.value = await window.electronAPI.getActiveSite()
+    console.log('Active site:', activeSite.value)
 
     // Load categories
     const result = await window.electronAPI.getHomeContent()
+    console.log('Home content result:', result)
+
     if (result.categories && result.categories.length > 0) {
       categories.value = result.categories.map((cat: any) => ({
         key: cat.type_id,
         label: cat.type_name,
         icon: categoryIcons[cat.type_name] || '📁'
       }))
+      console.log('Categories loaded:', categories.value.length)
     }
   } catch (error) {
     console.error('Failed to load data:', error)

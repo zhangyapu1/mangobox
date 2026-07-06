@@ -195,7 +195,9 @@ export function setupIPC(window: BrowserWindow): void {
   })
 
   ipcMain.handle('get-active-site', () => {
-    return sourceManager!.getActiveSite()
+    const site = sourceManager!.getActiveSite()
+    console.log('Getting active site:', site)
+    return site
   })
 
   ipcMain.handle('get-home-content', async (_, siteKey?: string) => {
