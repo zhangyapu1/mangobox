@@ -11,13 +11,13 @@ function createWindow() {
     height: 800,
     minWidth: 1024,
     minHeight: 768,
+    title: 'MangoBox',
+    show: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
       contextIsolation: true
     },
-    frame: false,
-    titleBarStyle: 'hidden',
     backgroundColor: '#1a1a2e'
   })
 
