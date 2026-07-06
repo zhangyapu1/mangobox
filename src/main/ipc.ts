@@ -19,14 +19,32 @@ import {
 import { SourceManager } from './source/SourceManager'
 import { MpvController } from './player/MpvController'
 import { ParseManager } from './player/ParseManager'
+import { AdBlocker } from './source/AdBlocker'
+import { DnsOverHttps } from './network/DnsOverHttps'
+import { DlnaManager } from './cast/DlnaManager'
+import { KeyboardManager } from './input/KeyboardManager'
 
 let sourceManager: SourceManager | null = null
 let mpvController: MpvController | null = null
 let parseManager: ParseManager | null = null
+let adBlocker: AdBlocker | null = null
+let dnsOverHttps: DnsOverHttps | null = null
+let dlnaManager: DlnaManager | null = null
+let keyboardManager: KeyboardManager | null = null
 
 export function setupIPC(window: BrowserWindow): void {
   sourceManager = new SourceManager()
-  parseManager = new ParseManager()
+  parseManager = new ParseManager(window)
+  adBlocker = new AdBlocker()
+  dnsOverHttps = new DnsOverHttps()
+  dlnaManager = new DlnaManager()
+  keyboardManager = new KeyboardManager(window)
+
+  // Enable ad blocker
+  adBlocker.applyRules()
+
+  // Register keyboard shortcuts
+  keyboardManager.registerShortcuts()
 
   // Favorites
   ipcMain.handle('add-favorite', async (_, siteKey: string, vodId: string, vodName: string, vodPic?: string, vodRemarks?: string) => {
@@ -101,6 +119,16 @@ export function setupIPC(window: BrowserWindow): void {
       if (parseManager) {
         parseManager.setParses(source.parses || [])
         parseManager.setFlags(source.flags || [])
+      }
+
+      // Update ad blocker with source ads
+      if (adBlocker && source.ads) {
+        adBlocker.setBlockedDomains(source.ads)
+      }
+
+      // Update DNS settings
+      if (dnsOverHttps && source.doh && source.doh.length > 0) {
+        dnsOverHttps.setServer(source.doh[0].name)
       }
 
       return { success: true, source }
@@ -235,5 +263,130 @@ export function setupIPC(window: BrowserWindow): void {
 
   ipcMain.handle('get-parses', () => {
     return parseManager?.getParseNames() || []
+  })
+
+  // Ad Blocker
+  ipcMain.handle('toggle-ad-blocker', () => {
+    if (!adBlocker) return false
+    return adBlocker.toggle()
+  })
+
+  ipcMain.handle('is-ad-blocker-enabled', () => {
+    if (!adBlocker) return false
+    return adBlocker.isAdEnabled()
+  })
+
+  ipcMain.handle('get-ad-blocker-stats', () => {
+    if (!adBlocker) return null
+    return adBlocker.getStats()
+  })
+
+  ipcMain.handle('set-blocked-domains', (_, domains: string[]) => {
+    if (!adBlocker) return
+    adBlocker.setBlockedDomains(domains)
+  })
+
+  // DNS-over-HTTPS
+  ipcMain.handle('set-doh-server', (_, serverName: string) => {
+    if (!dnsOverHttps) return
+    dnsOverHttps.setServer(serverName)
+  })
+
+  ipcMain.handle('get-doh-servers', () => {
+    if (!dnsOverHttps) return []
+    return dnsOverHttps.getServers()
+  })
+
+  ipcMain.handle('get-doh-stats', () => {
+    if (!dnsOverHttps) return null
+    return dnsOverHttps.getStats()
+  })
+
+  ipcMain.handle('resolve-dns', async (_, hostname: string) => {
+    if (!dnsOverHttps) return null
+    return await dnsOverHttps.resolve(hostname)
+  })
+
+  // DLNA
+  ipcMain.handle('start-dlna-scan', async () => {
+    if (!dlnaManager) return []
+    await dlnaManager.startScan()
+    return dlnaManager.getDevices()
+  })
+
+  ipcMain.handle('get-dlna-devices', () => {
+    if (!dlnaManager) return []
+    return dlnaManager.getDevices()
+  })
+
+  ipcMain.handle('cast-to-device', async (_, deviceIndex: number, url: string, title: string) => {
+    if (!dlnaManager) return { success: false, error: 'DLNA not initialized' }
+
+    const devices = dlnaManager.getDevices()
+    if (deviceIndex < 0 || deviceIndex >= devices.length) {
+      return { success: false, error: 'Invalid device index' }
+    }
+
+    try {
+      await dlnaManager.cast(devices[deviceIndex], url, title)
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('stop-casting', async () => {
+    if (!dlnaManager) return
+    await dlnaManager.stop()
+  })
+
+  ipcMain.handle('is-casting', () => {
+    if (!dlnaManager) return false
+    return dlnaManager.isCasting()
+  })
+
+  ipcMain.handle('get-cast-session', () => {
+    if (!dlnaManager) return null
+    return dlnaManager.getCurrentSession()
+  })
+
+  // Keyboard shortcuts
+  ipcMain.handle('get-keyboard-bindings', () => {
+    if (!keyboardManager) return []
+    return keyboardManager.getBindings()
+  })
+
+  ipcMain.handle('toggle-keyboard-shortcuts', () => {
+    if (!keyboardManager) return false
+    return keyboardManager.toggle()
+  })
+
+  ipcMain.handle('is-keyboard-enabled', () => {
+    if (!keyboardManager) return false
+    return keyboardManager.isEnabledState()
+  })
+
+  // Cleanup
+  ipcMain.handle('cleanup', () => {
+    if (mpvController) {
+      mpvController.destroy()
+      mpvController = null
+    }
+    if (parseManager) {
+      parseManager.destroy()
+      parseManager = null
+    }
+    if (adBlocker) {
+      adBlocker.disable()
+      adBlocker = null
+    }
+    if (dlnaManager) {
+      dlnaManager.stopScan()
+      dlnaManager = null
+    }
+    if (keyboardManager) {
+      keyboardManager.destroy()
+      keyboardManager = null
+    }
   })
 }

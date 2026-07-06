@@ -69,5 +69,37 @@ contextBridge.exposeInMainWorld('electronAPI', {
   stopVideo: () => ipcRenderer.invoke('stop-video'),
   toggleFullscreen: () => ipcRenderer.invoke('toggle-fullscreen'),
   getPlayerState: () => ipcRenderer.invoke('get-player-state'),
-  getParses: () => ipcRenderer.invoke('get-parses')
+  getParses: () => ipcRenderer.invoke('get-parses'),
+
+  // Ad Blocker
+  toggleAdBlocker: () => ipcRenderer.invoke('toggle-ad-blocker'),
+  isAdBlockerEnabled: () => ipcRenderer.invoke('is-ad-blocker-enabled'),
+  getAdBlockerStats: () => ipcRenderer.invoke('get-ad-blocker-stats'),
+  setBlockedDomains: (domains: string[]) => ipcRenderer.invoke('set-blocked-domains', domains),
+
+  // DNS-over-HTTPS
+  setDohServer: (serverName: string) => ipcRenderer.invoke('set-doh-server', serverName),
+  getDohServers: () => ipcRenderer.invoke('get-doh-servers'),
+  getDohStats: () => ipcRenderer.invoke('get-doh-stats'),
+  resolveDns: (hostname: string) => ipcRenderer.invoke('resolve-dns', hostname),
+
+  // DLNA
+  startDlnaScan: () => ipcRenderer.invoke('start-dlna-scan'),
+  getDlnaDevices: () => ipcRenderer.invoke('get-dlna-devices'),
+  castToDevice: (deviceIndex: number, url: string, title: string) =>
+    ipcRenderer.invoke('cast-to-device', deviceIndex, url, title),
+  stopCasting: () => ipcRenderer.invoke('stop-casting'),
+  isCasting: () => ipcRenderer.invoke('is-casting'),
+  getCastSession: () => ipcRenderer.invoke('get-cast-session'),
+
+  // Keyboard shortcuts
+  getKeyboardBindings: () => ipcRenderer.invoke('get-keyboard-bindings'),
+  toggleKeyboardShortcuts: () => ipcRenderer.invoke('toggle-keyboard-shortcuts'),
+  isKeyboardEnabled: () => ipcRenderer.invoke('is-keyboard-enabled'),
+  onKeyboardAction: (callback: (action: string) => void) => {
+    ipcRenderer.on('keyboard-action', (_, action) => callback(action))
+  },
+
+  // Cleanup
+  cleanup: () => ipcRenderer.invoke('cleanup')
 })
