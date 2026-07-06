@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
@@ -11,11 +11,14 @@ const selectedSource = ref(0)
 const selectedEpisode = ref(0)
 const isFavorite = ref(false)
 
+// Inject player function from App.vue
+const playVideo = inject<(url: string, title: string, episodes?: Array<{ name: string; url: string }>, episodeIndex?: number) => void>('playVideo')
+
 onMounted(async () => {
   await loadDetail()
 })
 
-// Watch for route param changes (same component, different id)
+// Watch for route param changes
 watch(() => route.params.id, async () => {
   if (route.params.id) {
     await loadDetail()
@@ -34,11 +37,8 @@ const loadDetail = async () => {
 
     videoInfo.value = await window.electronAPI.getDetail(siteKey as string, id as string)
 
-    // Check if favorited
     if (videoInfo.value) {
       isFavorite.value = await window.electronAPI.isFavorite(siteKey as string, id as string)
-
-      // Add to history
       await window.electronAPI.addHistory(
         siteKey as string,
         id as string,
@@ -56,17 +56,13 @@ const loadDetail = async () => {
 
 const toggleFavorite = async () => {
   if (!videoInfo.value) return
-
   const { siteKey, id } = route.params
   if (isFavorite.value) {
     await window.electronAPI.removeFavorite(siteKey as string, id as string)
   } else {
     await window.electronAPI.addFavorite(
-      siteKey as string,
-      id as string,
-      videoInfo.value.name,
-      videoInfo.value.pic,
-      videoInfo.value.remarks
+      siteKey as string, id as string,
+      videoInfo.value.name, videoInfo.value.pic, videoInfo.value.remarks
     )
   }
   isFavorite.value = !isFavorite.value
@@ -87,16 +83,16 @@ const playEpisode = async (sourceIndex: number, episodeIndex: number) => {
   // Update history
   const { siteKey, id } = route.params
   await window.electronAPI.addHistory(
-    siteKey as string,
-    id as string,
-    videoInfo.value.name,
-    videoInfo.value.pic,
-    episode.name,
-    episode.url
+    siteKey as string, id as string,
+    videoInfo.value.name, videoInfo.value.pic,
+    episode.name, episode.url
   )
 
-  // Play video
-  await window.electronAPI.playVideo(episode.url)
+  // Use embedded player
+  if (playVideo) {
+    const episodes = source.episodes.map((ep: any) => ({ name: ep.name, url: ep.url }))
+    playVideo(episode.url, `${videoInfo.value.name} - ${episode.name}`, episodes, episodeIndex)
+  }
 }
 
 const goBack = () => {
