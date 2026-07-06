@@ -33,7 +33,8 @@ export class CmsClient {
 
   async getCategoryList(categoryId: string, page: number = 1): Promise<{ list: VodItem[]; page: number; pageCount: number }> {
     try {
-      const url = `${this.baseUrl}?ac=list&t=${categoryId}&pg=${page}`
+      // Use ac=detail to get images in list response
+      const url = `${this.baseUrl}?ac=detail&t=${categoryId}&pg=${page}`
       const response = await fetch(url)
       const data = await response.json() as CmsListResponse
       return {
@@ -49,7 +50,8 @@ export class CmsClient {
 
   async getHomeContent(): Promise<{ categories: any[]; list: VodItem[] }> {
     try {
-      const url = `${this.baseUrl}?ac=list`
+      // Use ac=detail to get images in list response
+      const url = `${this.baseUrl}?ac=detail`
       const response = await fetch(url)
       const data = await response.json() as CmsListResponse
       return {
@@ -82,7 +84,8 @@ export class CmsClient {
 
   async search(keyword: string, page: number = 1): Promise<{ list: VodItem[]; page: number; pageCount: number }> {
     try {
-      const url = `${this.baseUrl}?ac=list&wd=${encodeURIComponent(keyword)}&pg=${page}`
+      // Use ac=detail to get images in search results
+      const url = `${this.baseUrl}?ac=detail&wd=${encodeURIComponent(keyword)}&pg=${page}`
       const response = await fetch(url)
       const data = await response.json() as CmsListResponse
       return {
