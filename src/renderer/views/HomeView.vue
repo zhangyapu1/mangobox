@@ -1,52 +1,113 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
-const featuredVideos = ref([
-  { id: 1, title: '示例电影1', cover: 'https://picsum.photos/200/300?random=1', rating: '8.5' },
-  { id: 2, title: '示例电影2', cover: 'https://picsum.photos/200/300?random=2', rating: '9.0' },
-  { id: 3, title: '示例电影3', cover: 'https://picsum.photos/200/300?random=3', rating: '7.8' },
-  { id: 4, title: '示例电影4', cover: 'https://picsum.photos/200/300?random=4', rating: '8.2' }
-])
+const router = useRouter()
+const loading = ref(true)
+const categories = ref<any[]>([])
+const featuredVideos = ref<any[]>([])
+const selectedCategory = ref('')
 
-const latestVideos = ref([
-  { id: 5, title: '最新电影1', cover: 'https://picsum.photos/200/300?random=5', rating: '8.0' },
-  { id: 6, title: '最新电影2', cover: 'https://picsum.photos/200/300?random=6', rating: '7.5' },
-  { id: 7, title: '最新电影3', cover: 'https://picsum.photos/200/300?random=7', rating: '8.8' },
-  { id: 8, title: '最新电影4', cover: 'https://picsum.photos/200/300?random=8', rating: '7.2' }
-])
+onMounted(async () => {
+  await loadHomeContent()
+})
+
+const loadHomeContent = async () => {
+  loading.value = true
+  try {
+    // Check if source is loaded
+    const source = await window.electronAPI.getSource()
+    if (!source) {
+      // Load default source
+      await window.electronAPI.loadSource('https://raw.githubusercontent.com/FGBLH/GHK/main/海豚py.json')
+    }
+
+    // Get home content
+    const result = await window.electronAPI.getHomeContent()
+    categories.value = result.categories || []
+    featuredVideos.value = result.list || []
+
+    if (categories.value.length > 0) {
+      selectedCategory.value = categories.value[0].type_id
+    }
+  } catch (error) {
+    console.error('Failed to load home content:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const goDetail = (vodId: string) => {
+  const activeSite = window.electronAPI.getActiveSite()
+  if (activeSite) {
+    router.push(`/detail/${activeSite.key}/${vodId}`)
+  }
+}
+
+const loadCategory = async (categoryId: string) => {
+  selectedCategory.value = categoryId
+  loading.value = true
+  try {
+    const activeSite = await window.electronAPI.getActiveSite()
+    if (activeSite) {
+      const result = await window.electronAPI.getCategoryList(activeSite.key, categoryId, 1)
+      featuredVideos.value = result.list || []
+    }
+  } catch (error) {
+    console.error('Failed to load category:', error)
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
   <div class="home-view">
-    <section class="section">
-      <h2 class="section-title">推荐</h2>
-      <div class="video-grid">
-        <div class="video-card" v-for="video in featuredVideos" :key="video.id">
-          <div class="card-cover">
-            <img :src="video.cover" :alt="video.title">
-            <div class="card-rating">{{ video.rating }}</div>
-          </div>
-          <div class="card-info">
-            <h3 class="card-title">{{ video.title }}</h3>
-          </div>
-        </div>
-      </div>
-    </section>
+    <div v-if="loading" class="loading">
+      <div class="loading-spinner"></div>
+      <p>加载中...</p>
+    </div>
 
-    <section class="section">
-      <h2 class="section-title">最新</h2>
-      <div class="video-grid">
-        <div class="video-card" v-for="video in latestVideos" :key="video.id">
+    <template v-else>
+      <!-- Category Tabs -->
+      <div class="category-tabs" v-if="categories.length > 0">
+        <div
+          v-for="cat in categories"
+          :key="cat.type_id"
+          class="category-tab"
+          :class="{ active: selectedCategory === cat.type_id }"
+          @click="loadCategory(cat.type_id)"
+        >
+          {{ cat.type_name }}
+        </div>
+      </div>
+
+      <!-- Video Grid -->
+      <div class="video-grid" v-if="featuredVideos.length > 0">
+        <div
+          v-for="video in featuredVideos"
+          :key="video.vod_id"
+          class="video-card"
+          @click="goDetail(video.vod_id)"
+        >
           <div class="card-cover">
-            <img :src="video.cover" :alt="video.title">
-            <div class="card-rating">{{ video.rating }}</div>
+            <img :src="video.vod_pic" :alt="video.vod_name" loading="lazy" />
+            <div v-if="video.vod_remarks" class="card-remarks">{{ video.vod_remarks }}</div>
           </div>
           <div class="card-info">
-            <h3 class="card-title">{{ video.title }}</h3>
+            <h3 class="card-title">{{ video.vod_name }}</h3>
+            <div v-if="video.vod_year" class="card-year">{{ video.vod_year }}</div>
           </div>
         </div>
       </div>
-    </section>
+
+      <!-- Empty State -->
+      <div v-else class="empty-state">
+        <div class="empty-icon">📺</div>
+        <p>没有找到视频内容</p>
+        <p class="empty-hint">请在设置中添加源</p>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -55,22 +116,57 @@ const latestVideos = ref([
   padding: 20px;
 }
 
-.section {
-  margin-bottom: 30px;
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #666;
 }
 
-.section-title {
-  font-size: 18px;
-  font-weight: 500;
-  color: #ffffff;
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #0f3460;
+  border-top-color: #e94560;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
   margin-bottom: 15px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.category-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  overflow-x: auto;
   padding-bottom: 10px;
-  border-bottom: 2px solid #e94560;
+}
+
+.category-tab {
+  padding: 8px 16px;
+  background-color: #0f3460;
+  border-radius: 20px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #1a4a7a;
+  }
+
+  &.active {
+    background-color: #e94560;
+  }
 }
 
 .video-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 20px;
 }
 
@@ -98,7 +194,7 @@ const latestVideos = ref([
   }
 }
 
-.card-rating {
+.card-remarks {
   position: absolute;
   bottom: 10px;
   right: 10px;
@@ -107,7 +203,6 @@ const latestVideos = ref([
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 12px;
-  font-weight: bold;
 }
 
 .card-info {
@@ -120,5 +215,31 @@ const latestVideos = ref([
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-bottom: 5px;
+}
+
+.card-year {
+  font-size: 12px;
+  color: #888;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #666;
+}
+
+.empty-icon {
+  font-size: 64px;
+  margin-bottom: 20px;
+}
+
+.empty-hint {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #888;
 }
 </style>
