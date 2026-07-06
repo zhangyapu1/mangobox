@@ -144,15 +144,21 @@ export function setupIPC(window: BrowserWindow): void {
   ipcMain.handle('load-builtin-source', async () => {
     try {
       const sourcePath = join(app.getAppPath(), 'resources', 'sources', 'default.json')
+      console.log('Loading built-in source from:', sourcePath)
+      console.log('File exists:', existsSync(sourcePath))
+
       if (!existsSync(sourcePath)) {
+        console.error('Built-in source file not found at:', sourcePath)
         return { success: false, error: 'Built-in source not found' }
       }
 
       const content = readFileSync(sourcePath, 'utf-8')
       const sourceData = JSON.parse(content)
+      console.log('Source loaded, sites count:', sourceData.sites?.length)
 
       // Load the source data directly
       const source = await sourceManager!.loadSourceData(sourceData)
+      console.log('Source initialized, active site:', sourceManager!.getActiveSite()?.name)
 
       // Update parse manager
       if (parseManager) {
@@ -193,7 +199,9 @@ export function setupIPC(window: BrowserWindow): void {
   })
 
   ipcMain.handle('get-home-content', async (_, siteKey?: string) => {
-    return await sourceManager!.getHomeContent(siteKey)
+    const result = await sourceManager!.getHomeContent(siteKey)
+    console.log('Home content result:', { categories: result.categories?.length, list: result.list?.length })
+    return result
   })
 
   ipcMain.handle('get-category-list', async (_, siteKey: string, categoryId: string, page: number) => {
