@@ -1,6 +1,6 @@
 import { spawn, ChildProcess } from 'child_process'
 import { createConnection, Socket } from 'net'
-import { BrowserWindow } from 'electron'
+import { BrowserWindow, screen } from 'electron'
 import { join } from 'path'
 import { app } from 'electron'
 import { existsSync } from 'fs'
@@ -27,6 +27,10 @@ export class MpvController {
   private currentTime = 0
   private duration = 0
   private volume = 80
+  private videoX = 0
+  private videoY = 0
+  private videoWidth = 0
+  private videoHeight = 0
 
   constructor(window: BrowserWindow) {
     this.window = window
@@ -42,15 +46,34 @@ export class MpvController {
 
     console.log('Initializing mpv from:', mpvPath)
 
-    // Spawn mpv process (in its own window for now)
+    // Get the window handle for embedding
+    const hwnd = this.window.getNativeWindowHandle().readInt32LE()
+    console.log('Window HWND:', hwnd)
+
+    // Calculate video area position (right side of window)
+    const windowBounds = this.window.getBounds()
+    const display = screen.getDisplayMatching(windowBounds)
+
+    // Video player area: right 400px of window
+    this.videoX = windowBounds.x + windowBounds.width - 400
+    this.videoY = windowBounds.y + 50 // Below top tabs
+    this.videoWidth = 400
+    this.videoHeight = windowBounds.height - 50
+
+    console.log('Video area:', { x: this.videoX, y: this.videoY, width: this.videoWidth, height: this.videoHeight })
+
+    // Spawn mpv process embedded in the window
     this.process = spawn(mpvPath, [
+      `--wid=${hwnd}`,
       `--input-ipc-server=${this.pipeName}`,
       '--hwdec=auto',
       '--keep-open=yes',
       '--no-terminal',
       '--idle=yes',
       '--volume=80',
-      '--title=MangoBox Player'
+      `--geometry=${this.videoWidth}x${this.videoHeight}+${this.videoX - windowBounds.x}+${this.videoY - windowBounds.y}`,
+      '--border=no',
+      '--ontop=yes'
     ], {
       stdio: ['pipe', 'pipe', 'pipe']
     })
@@ -63,7 +86,11 @@ export class MpvController {
 
     if (this.process.stderr) {
       this.process.stderr.on('data', (data: Buffer) => {
-        console.error('mpv stderr:', data.toString())
+        // Ignore common mpv warnings
+        const msg = data.toString()
+        if (!msg.includes('deprecated') && !msg.includes('Warning')) {
+          console.error('mpv stderr:', msg)
+        }
       })
     }
 
@@ -78,8 +105,25 @@ export class MpvController {
       this.process = null
     })
 
+    // Listen for window resize/move to update mpv position
+    this.window.on('resize', () => this.updateMpvPosition())
+    this.window.on('move', () => this.updateMpvPosition())
+
     // Wait for mpv to start and connect to IPC
     await this.waitForConnection()
+  }
+
+  private updateMpvPosition(): void {
+    if (!this.process) return
+
+    const windowBounds = this.window.getBounds()
+    this.videoX = windowBounds.x + windowBounds.width - 400
+    this.videoY = windowBounds.y + 50
+
+    // Send geometry update to mpv
+    this.sendCommand({
+      command: ['set_property', 'geometry', `${this.videoWidth}x${this.videoHeight}+${this.videoX - windowBounds.x}+${this.videoY - windowBounds.y}`]
+    }).catch(() => {}) // Ignore errors if mpv is busy
   }
 
   private findMpv(): string | null {
@@ -109,7 +153,7 @@ export class MpvController {
         })
 
         sock.on('error', (err) => {
-          sock.destroy() // Close the failed socket to prevent FD leak
+          sock.destroy()
           retries++
           if (retries >= maxRetries) {
             reject(new Error('Failed to connect to mpv IPC'))
@@ -131,7 +175,6 @@ export class MpvController {
     this.socket.on('data', (data: Buffer) => {
       buffer += data.toString()
 
-      // Process complete JSON messages
       const lines = buffer.split('\n')
       buffer = lines.pop() || ''
 
@@ -142,7 +185,6 @@ export class MpvController {
           const message = JSON.parse(line)
 
           if (message.request_id !== undefined) {
-            // Response to a command
             const pending = this.pendingRequests.get(message.request_id)
             if (pending) {
               this.pendingRequests.delete(message.request_id)
@@ -153,11 +195,10 @@ export class MpvController {
               }
             }
           } else if (message.event) {
-            // Event from mpv
             this.handleEvent(message)
           }
         } catch (e) {
-          console.error('Failed to parse mpv message:', line, e)
+          // Ignore parse errors
         }
       }
     })
@@ -176,8 +217,6 @@ export class MpvController {
   }
 
   private handleEvent(event: MpvEvent): void {
-    const handlers = this.eventHandlers.get(event.event) || []
-
     switch (event.event) {
       case 'property-change':
         if (event.name === 'time-pos' && event.data !== undefined) {
@@ -219,7 +258,6 @@ export class MpvController {
 
       this.socket!.write(JSON.stringify(command) + '\n')
 
-      // Timeout after 5 seconds
       setTimeout(() => {
         if (this.pendingRequests.has(id)) {
           this.pendingRequests.delete(id)
@@ -232,7 +270,7 @@ export class MpvController {
   private observeProperty(name: string): void {
     this.sendCommand({
       command: ['observe_property', 1, name]
-    })
+    }).catch(() => {})
   }
 
   on(event: string, handler: Function): void {
