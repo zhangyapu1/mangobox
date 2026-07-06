@@ -3,6 +3,7 @@ import fetch from 'electron-fetch'
 
 export class JsEngine {
   private scripts: Map<string, any> = new Map()
+  private readonly CALL_TIMEOUT = 30000 // 30 seconds
 
   async loadScript(key: string, jsUrl: string): Promise<void> {
     try {
@@ -12,18 +13,13 @@ export class JsEngine {
         const response = await fetch(jsUrl)
         code = await response.text()
       } else {
-        // Local file - not implemented yet
         throw new Error('Local JS files not supported yet')
       }
 
-      // Create a sandbox context
+      // Create a sandbox context (without setTimeout/setInterval to prevent leaks)
       const sandbox = {
         console,
         fetch,
-        setTimeout,
-        clearTimeout,
-        setInterval,
-        clearInterval,
         Buffer,
         URL,
         URLSearchParams,
@@ -54,7 +50,6 @@ export class JsEngine {
       } else if (typeof sandbox.module.exports === 'function') {
         this.scripts.set(key, new sandbox.module.exports())
       } else {
-        // Store the module itself
         this.scripts.set(key, sandbox.module.exports)
       }
     } catch (error) {
@@ -74,7 +69,13 @@ export class JsEngine {
       throw new Error(`Method ${method} not found in script ${key}`)
     }
 
-    return await func(params)
+    // Add timeout protection for remote code execution
+    return Promise.race([
+      func(params),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`Spider call timeout: ${method}`)), this.CALL_TIMEOUT)
+      )
+    ])
   }
 
   async homeContent(key: string, filter: boolean = true): Promise<any> {

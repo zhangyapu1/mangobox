@@ -1,4 +1,4 @@
-import { spawn, ChildProcess } from 'child_process'
+import { spawn, ChildProcess, execSync } from 'child_process'
 import { join } from 'path'
 import { app } from 'electron'
 import { existsSync } from 'fs'
@@ -26,7 +26,6 @@ export class PythonBridge {
   }
 
   private init(): void {
-    // Try to find Python executable
     const pythonPath = this.findPython()
 
     if (!pythonPath) {
@@ -34,7 +33,6 @@ export class PythonBridge {
       return
     }
 
-    // Spawn Python process with the executor script
     const executorPath = join(app.getAppPath(), 'resources', 'python', 'spider_executor.py')
 
     if (!existsSync(executorPath)) {
@@ -61,11 +59,13 @@ export class PythonBridge {
     this.process.on('exit', (code) => {
       console.log('Python process exited with code:', code)
       this.process = null
+      this.rejectAllPending(new Error('Python process exited unexpectedly'))
     })
 
     this.process.on('error', (err) => {
       console.error('Python process error:', err)
       this.process = null
+      this.rejectAllPending(new Error(`Python process error: ${err.message}`))
     })
   }
 
@@ -76,23 +76,32 @@ export class PythonBridge {
       return embeddedPython
     }
 
-    // Check for system Python
+    // Check for system Python (verify each candidate exists)
     const paths = ['python', 'python3', 'py']
     for (const p of paths) {
-      // In production, we would check if the command exists
-      // For now, return 'python' and hope it's in PATH
-      return p
+      try {
+        execSync(`${p} --version`, { stdio: 'ignore', timeout: 5000 })
+        return p
+      } catch {
+        // Not found, try next
+      }
     }
 
     return null
   }
 
+  private rejectAllPending(error: Error): void {
+    for (const [id, pending] of this.pendingRequests) {
+      pending.reject(error)
+    }
+    this.pendingRequests.clear()
+  }
+
   private handleOutput(data: string): void {
     this.buffer += data
 
-    // Process complete lines
     const lines = this.buffer.split('\n')
-    this.buffer = lines.pop() || '' // Keep incomplete line in buffer
+    this.buffer = lines.pop() || ''
 
     for (const line of lines) {
       if (!line.trim()) continue
@@ -126,7 +135,6 @@ export class PythonBridge {
     return new Promise((resolve, reject) => {
       this.pendingRequests.set(id, { resolve, reject })
 
-      // Send request to Python process
       this.process!.stdin!.write(JSON.stringify(request) + '\n')
 
       // Timeout after 30 seconds
@@ -176,5 +184,6 @@ export class PythonBridge {
       this.process.kill()
       this.process = null
     }
+    this.rejectAllPending(new Error('PythonBridge destroyed'))
   }
 }

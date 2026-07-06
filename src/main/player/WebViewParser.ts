@@ -33,7 +33,7 @@ export class WebViewParser {
 
         // Listen for web requests to find video URL
         this.view.webContents.session.webRequest.onBeforeRequest(
-          { urls: ['*://*.m3u8*', '*://*.mp4*', '*://*.flv*', '*://*.ts*'] },
+          { urls: ['*://*/*.m3u8*', '*://*/*.mp4*', '*://*/*.flv*', '*://*/*.ts'] },
           (details, callback) => {
             interceptedUrls.push(details.url)
 

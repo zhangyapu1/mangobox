@@ -27,6 +27,7 @@ interface DrpyContext {
 export class DrpyEngine {
   private scripts: Map<string, any> = new Map()
   private scriptCache: Map<string, string> = new Map()
+  private readonly CALL_TIMEOUT = 30000 // 30 seconds
 
   async loadScript(key: string, jsUrl: string): Promise<void> {
     try {
@@ -143,7 +144,13 @@ export class DrpyEngine {
       throw new Error(`Method ${method} not found in script ${key}`)
     }
 
-    return await func(params)
+    // Add timeout protection for remote code execution
+    return Promise.race([
+      func(params),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error(`Drpy call timeout: ${method}`)), this.CALL_TIMEOUT)
+      )
+    ])
   }
 
   async homeContent(key: string, filter: boolean = true): Promise<any> {

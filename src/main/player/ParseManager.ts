@@ -129,6 +129,9 @@ export class ParseManager {
       .filter(p => p.type === 1) // Only use JSON API parses for race
       .map(p => this.jsonParse(p, url).catch(() => null))
 
+    // Handle empty promises array (Promise.race([]) never settles)
+    if (promises.length === 0) return url
+
     const result = await Promise.race(promises)
     return result || url
   }

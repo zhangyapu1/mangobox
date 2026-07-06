@@ -100,15 +100,17 @@ export class MpvController {
       let retries = 0
 
       const tryConnect = () => {
-        this.socket = createConnection(this.pipeName)
+        const sock = createConnection(this.pipeName)
 
-        this.socket.on('connect', () => {
+        sock.on('connect', () => {
           console.log('Connected to mpv IPC')
+          this.socket = sock
           this.setupSocket()
           resolve()
         })
 
-        this.socket.on('error', (err) => {
+        sock.on('error', (err) => {
+          sock.destroy() // Close the failed socket to prevent FD leak
           retries++
           if (retries >= maxRetries) {
             reject(new Error('Failed to connect to mpv IPC'))
