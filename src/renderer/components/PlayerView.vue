@@ -7,6 +7,7 @@ const props = defineProps<{
   title?: string
   episodes?: Array<{ name: string; url: string }>
   currentEpisodeIndex?: number
+  referer?: string
 }>()
 
 const emit = defineEmits<{
@@ -51,12 +52,14 @@ const playUrl = (url: string) => {
   error.value = ''
   destroyHls()
 
-  // Extract origin from URL for Referer header
-  let origin = ''
-  try {
-    const urlObj = new URL(url)
-    origin = urlObj.origin
-  } catch {}
+  // Use provided referer or extract from URL
+  let referer = props.referer || ''
+  if (!referer) {
+    try {
+      const urlObj = new URL(url)
+      referer = urlObj.origin + '/'
+    } catch {}
+  }
 
   if (url.includes('.m3u8') || url.includes('m3u8')) {
     // HLS stream
@@ -65,12 +68,12 @@ const playUrl = (url: string) => {
         maxBufferLength: 30,
         maxMaxBufferLength: 60,
         xhrSetup: (xhr, requestUrl) => {
-          // Add common headers for video requests
+          // Add headers for video requests
           xhr.withCredentials = false
-          if (origin) {
-            xhr.setRequestHeader('Referer', origin + '/')
+          if (referer) {
+            xhr.setRequestHeader('Referer', referer)
           }
-          xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
+          xhr.setRequestHeader('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
         }
       })
       hls.value.loadSource(url)

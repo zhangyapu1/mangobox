@@ -11,12 +11,14 @@ const playerEpisodes = ref<Array<{ name: string; url: string }>>([])
 const currentEpisodeIndex = ref(0)
 const showPlayer = ref(false)
 const playerWidth = ref(450)
+const playerReferer = ref('')
 
-const playVideo = (url: string, title: string, episodes?: Array<{ name: string; url: string }>, episodeIndex?: number) => {
+const playVideo = (url: string, title: string, episodes?: Array<{ name: string; url: string }>, episodeIndex?: number, referer?: string) => {
   playerUrl.value = url
   playerTitle.value = title
   playerEpisodes.value = episodes || []
   currentEpisodeIndex.value = episodeIndex || 0
+  playerReferer.value = referer || ''
   showPlayer.value = true
 }
 
@@ -94,6 +96,7 @@ provide('playerState', {
             :title="playerTitle"
             :episodes="playerEpisodes"
             :currentEpisodeIndex="currentEpisodeIndex"
+            :referer="playerReferer"
             @episode-change="onEpisodeChange"
           />
         </div>

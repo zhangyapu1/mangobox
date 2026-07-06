@@ -88,10 +88,14 @@ const playEpisode = async (sourceIndex: number, episodeIndex: number) => {
     episode.name, episode.url
   )
 
+  // Get the site API URL for Referer
+  const activeSite = await window.electronAPI.getActiveSite()
+  const referer = activeSite?.api ? new URL(activeSite.api).origin + '/' : ''
+
   // Use embedded player
   if (playVideo) {
     const episodes = source.episodes.map((ep: any) => ({ name: ep.name, url: ep.url }))
-    playVideo(episode.url, `${videoInfo.value.name} - ${episode.name}`, episodes, episodeIndex)
+    playVideo(episode.url, `${videoInfo.value.name} - ${episode.name}`, episodes, episodeIndex, referer)
   }
 }
 
